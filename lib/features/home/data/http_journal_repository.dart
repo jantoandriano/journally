@@ -157,10 +157,14 @@ class HttpJournalRepository implements JournalRepository {
       orderItems: (json['orderItems'] as List<dynamic>)
           .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
           .toList(),
-      photoCount: photoUrls.length,
+      photoCount: (json['photoCount'] as num?)?.toInt() ?? photoUrls.length,
       photoUrls: photoUrls,
       gradientColors: palette,
       visitedAt: DateTime.parse(json['visitedAt'] as String),
+      rating: (json['rating'] as num?)?.toDouble(),
+      notes: json['notes'] as String? ?? '',
+      attributes:
+          (json['attributes'] as List<dynamic>?)?.cast<String>() ?? const [],
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
       placeId: json['placeId'] as String?,
