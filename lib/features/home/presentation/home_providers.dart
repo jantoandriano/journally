@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../data/mock_journal_repository.dart';
+import '../data/http_journal_repository.dart';
 import '../domain/journal_entry.dart';
 import '../domain/journal_repository.dart';
 
@@ -8,7 +8,7 @@ part 'home_providers.g.dart';
 
 @riverpod
 JournalRepository journalRepository(Ref ref) {
-  return MockJournalRepository();
+  return HttpJournalRepository();
 }
 
 @riverpod
