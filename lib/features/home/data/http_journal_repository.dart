@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../domain/journal_entry.dart';
 import '../domain/journal_repository.dart';
-import 'api_config.dart';
+import '../../../core/api_config.dart';
 
 /// [JournalEntry.gradientColors] is a client-only placeholder (the API has
 /// no concept of it) shown behind the photo area until real photo rendering
