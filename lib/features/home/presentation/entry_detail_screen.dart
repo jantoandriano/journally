@@ -34,7 +34,7 @@ class EntryDetailScreen extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colors.surface,
+      backgroundColor: colors.surfaceContainerLow,
       body: entryAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(

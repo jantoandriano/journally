@@ -29,12 +29,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final entriesAsync = ref.watch(journalEntriesProvider);
 
     return Scaffold(
-      backgroundColor: colors.surface,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: colors.primary,
-        foregroundColor: Colors.white,
-        onPressed: () {},
-        child: const Icon(Icons.add),
+      backgroundColor: colors.surfaceContainerLow,
+      floatingActionButton: Container(
+        width: 58,
+        height: 58,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.38),
+              blurRadius: 20,
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          backgroundColor: colors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          onPressed: () {},
+          child: const Icon(Icons.add),
+        ),
       ),
       body: SafeArea(
         child: entriesAsync.when(
@@ -73,9 +87,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   gridDelegate:
                       const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.5,
+                    mainAxisSpacing: 18,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: 0.58,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => JournalCard(entry: entries[index]),

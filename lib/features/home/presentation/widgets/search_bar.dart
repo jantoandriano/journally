@@ -16,19 +16,21 @@ class JournalSearchBar extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 16, right: 8),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: colors.outlineVariant),
       ),
       child: Row(
         children: [
-          Icon(Icons.search, size: 20, color: colors.onSurfaceVariant),
+          Icon(Icons.search, size: 20, color: colors.outline),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
+              cursorColor: colors.primary,
               style: GoogleFonts.manrope(
                 fontSize: 14,
                 color: colors.onSurface,
@@ -73,8 +75,9 @@ class _AiChip extends StatelessWidget {
           Text(
             'AI',
             style: GoogleFonts.manrope(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
+              letterSpacing: 11 * 0.04,
               color: colors.primary,
             ),
           ),

@@ -17,6 +17,7 @@ class Header extends StatelessWidget {
           style: GoogleFonts.fraunces(
             fontSize: 34,
             fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
             color: colors.onSurface,
           ),
         ),
@@ -24,7 +25,7 @@ class Header extends StatelessWidget {
         Text(
           '$count places visited',
           style: GoogleFonts.manrope(
-            fontSize: 14,
+            fontSize: 13,
             color: colors.onSurfaceVariant,
           ),
         ),

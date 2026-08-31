@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SuggestionChips extends StatelessWidget {
+class SuggestionChips extends StatefulWidget {
   const SuggestionChips({super.key});
 
   static const _labels = [
@@ -12,30 +12,50 @@ class SuggestionChips extends StatelessWidget {
   ];
 
   @override
+  State<SuggestionChips> createState() => _SuggestionChipsState();
+}
+
+class _SuggestionChipsState extends State<SuggestionChips> {
+  int? _selectedIndex;
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 36,
+      height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _labels.length,
+        itemCount: SuggestionChips._labels.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: colors.outlineVariant),
+          final selected = _selectedIndex == index;
+          return Material(
+            color: selected ? colors.primaryContainer : colors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(19),
+              side: BorderSide(
+                color: selected ? colors.primary : colors.outlineVariant,
+              ),
             ),
-            child: Text(
-              _labels[index],
-              style: GoogleFonts.manrope(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: colors.onSurface,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(19),
+              splashColor: colors.surfaceContainerHighest,
+              highlightColor: colors.surfaceContainerHighest,
+              onTap: () => setState(
+                () => _selectedIndex = selected ? null : index,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                alignment: Alignment.center,
+                child: Text(
+                  SuggestionChips._labels[index],
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? colors.primary : colors.onSurfaceVariant,
+                  ),
+                ),
               ),
             ),
           );
