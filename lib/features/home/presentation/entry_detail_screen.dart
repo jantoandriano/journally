@@ -6,8 +6,18 @@ import '../domain/journal_entry.dart';
 import 'home_providers.dart';
 
 const _monthNames = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 String _formatVisitedAt(DateTime date) =>
@@ -60,11 +70,22 @@ class _EntryDetailBody extends StatelessWidget {
       children: [
         CustomScrollView(
           slivers: [
-            _HeroHeader(entry: entry),
-            SliverToBoxAdapter(child: _Sheet(entry: entry)),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _HeroHeader(entry: entry),
+                  _Sheet(entry: entry),
+                ],
+              ),
+            ),
           ],
         ),
-        Positioned(left: 0, right: 0, bottom: 0, child: _BottomActionBar(entry: entry)),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: _BottomActionBar(entry: entry),
+        ),
       ],
     );
   }
@@ -77,53 +98,52 @@ class _HeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 420,
-      pinned: false,
-      automaticallyImplyLeading: false,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: entry.gradientColors,
+    return SizedBox(
+      height: 420,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: entry.gradientColors,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            left: 16,
+            child: _HeroCircleButton(
+              icon: Icons.arrow_back,
+              onTap: () => Navigator.pop(context),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Row(
+              children: [
+                const _HeroCircleButton(icon: Icons.bookmark_border),
+                const SizedBox(width: 10),
+                _HeroCircleButton(
+                  icon: Icons.more_vert,
+                  onTap: () => _showOverflowMenu(context),
                 ),
-              ),
+              ],
             ),
-            Positioned(
-              top: 16,
-              left: 16,
-              child: _HeroCircleButton(
-                icon: Icons.arrow_back,
-                onTap: () => Navigator.pop(context),
-              ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: _PageDots(
+              count: entry.photoCount == 0 ? 1 : entry.photoCount,
             ),
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Row(
-                children: [
-                  const _HeroCircleButton(icon: Icons.bookmark_border),
-                  const SizedBox(width: 10),
-                  _HeroCircleButton(
-                    icon: Icons.more_vert,
-                    onTap: () => _showOverflowMenu(context),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 16,
-              child: _PageDots(count: entry.photoCount == 0 ? 1 : entry.photoCount),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -249,76 +269,82 @@ class _Sheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Container(
-      transform: Matrix4.translationValues(0, -28, 0),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
-      decoration: BoxDecoration(
-        color: colors.surface,
+    return Transform.translate(
+      offset: const Offset(0, -28),
+      child: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
+          color: colors.surface,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  entry.placeName,
-                  style: GoogleFonts.fraunces(
-                    fontSize: 27,
-                    fontWeight: FontWeight.w700,
-                    color: colors.onSurface,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      entry.placeName,
+                      style: GoogleFonts.fraunces(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w700,
+                        color: colors.onSurface,
+                      ),
+                    ),
                   ),
-                ),
+                  if (entry.rating != null) _RatingChip(rating: entry.rating!),
+                ],
               ),
-              if (entry.rating != null) _RatingChip(rating: entry.rating!),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.place_outlined, size: 14, color: colors.outline),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  '${entry.neighborhood}, ${entry.city} · Visited ${_formatVisitedAt(entry.visitedAt)}',
-                  style: GoogleFonts.manrope(fontSize: 12.5, color: colors.outline),
-                ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(Icons.place_outlined, size: 14, color: colors.outline),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      '${entry.neighborhood}, ${entry.city} · Visited ${_formatVisitedAt(entry.visitedAt)}',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12.5,
+                        color: colors.outline,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          if (entry.attributes.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final attribute in entry.attributes) _AttributeTag(label: attribute),
+              if (entry.attributes.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final attribute in entry.attributes)
+                      _AttributeTag(label: attribute),
+                  ],
+                ),
               ],
-            ),
-          ],
-          _SectionDivider(color: colors.outlineVariant),
-          Text(
-            'What I ordered',
-            style: GoogleFonts.fraunces(
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-              color: colors.onSurface,
-            ),
+              _SectionDivider(color: colors.outlineVariant),
+              Text(
+                'What I ordered',
+                style: GoogleFonts.fraunces(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: colors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              for (final item in entry.orderItems) _OrderItemTile(item: item),
+              _SectionDivider(color: colors.outlineVariant),
+              _NotesBlock(notes: entry.notes),
+              const SizedBox(height: 12),
+              const _AiRecap(),
+              _SectionDivider(color: colors.outlineVariant),
+              _PhotoStrip(entry: entry),
+            ],
           ),
-          const SizedBox(height: 12),
-          for (final item in entry.orderItems) _OrderItemTile(item: item),
-          _SectionDivider(color: colors.outlineVariant),
-          _NotesBlock(notes: entry.notes),
-          const SizedBox(height: 12),
-          const _AiRecap(),
-          _SectionDivider(color: colors.outlineVariant),
-          _PhotoStrip(entry: entry),
-        ],
+        ),
       ),
     );
   }
@@ -445,7 +471,10 @@ class _OrderItemTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     item.note!,
-                    style: GoogleFonts.manrope(fontSize: 11.5, color: colors.outline),
+                    style: GoogleFonts.manrope(
+                      fontSize: 11.5,
+                      color: colors.outline,
+                    ),
                   ),
                 ],
               ],
@@ -637,7 +666,11 @@ class _BottomActionBar extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.edit_outlined, size: 18, color: Colors.white),
+                    const Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Edit entry',
