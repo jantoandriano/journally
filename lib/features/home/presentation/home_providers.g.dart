@@ -54,7 +54,7 @@ final class JournalRepositoryProvider
   }
 }
 
-String _$journalRepositoryHash() => r'1e996d82fc4e81bf90a121c645dac6f50dc66b8a';
+String _$journalRepositoryHash() => r'21109c0302bbf44d715ac65f21b4e9e57a11bcc2';
 
 @ProviderFor(journalEntries)
 final journalEntriesProvider = JournalEntriesProvider._();
@@ -96,6 +96,81 @@ final class JournalEntriesProvider
 }
 
 String _$journalEntriesHash() => r'ac07e30eaaaedcc8242ef26a3d22c7dbaea285a0';
+
+@ProviderFor(journalEntry)
+final journalEntryProvider = JournalEntryFamily._();
+
+final class JournalEntryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<JournalEntry>,
+          JournalEntry,
+          FutureOr<JournalEntry>
+        >
+    with $FutureModifier<JournalEntry>, $FutureProvider<JournalEntry> {
+  JournalEntryProvider._({
+    required JournalEntryFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'journalEntryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$journalEntryHash();
+
+  @override
+  String toString() {
+    return r'journalEntryProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<JournalEntry> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<JournalEntry> create(Ref ref) {
+    final argument = this.argument as String;
+    return journalEntry(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is JournalEntryProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$journalEntryHash() => r'0c2aa904ba432d71627b3a98c8e77c3a95295074';
+
+final class JournalEntryFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<JournalEntry>, String> {
+  JournalEntryFamily._()
+    : super(
+        retry: null,
+        name: r'journalEntryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  JournalEntryProvider call(String id) =>
+      JournalEntryProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'journalEntryProvider';
+}
 
 @ProviderFor(SearchQuery)
 final searchQueryProvider = SearchQueryProvider._();

@@ -17,6 +17,11 @@ Future<List<JournalEntry>> journalEntries(Ref ref) {
 }
 
 @riverpod
+Future<JournalEntry> journalEntry(Ref ref, String id) {
+  return ref.watch(journalRepositoryProvider).fetchEntryById(id);
+}
+
+@riverpod
 class SearchQuery extends _$SearchQuery {
   @override
   String build() => '';
