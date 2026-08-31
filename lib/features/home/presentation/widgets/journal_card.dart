@@ -106,8 +106,8 @@ class JournalCard extends StatelessWidget {
                 children: [
                   for (final item in visibleItems)
                     _OrderTag(
-                      label: item.price != null
-                          ? '${item.name} · \$${item.price!.toStringAsFixed(2)}'
+                      label: item.formattedPrice != null
+                          ? '${item.name} · ${item.formattedPrice}'
                           : item.name,
                     ),
                   if (extraCount > 0) _OrderTag(label: '+$extraCount'),

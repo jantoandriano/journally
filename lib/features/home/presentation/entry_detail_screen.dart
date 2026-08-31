@@ -480,9 +480,9 @@ class _OrderItemTile extends StatelessWidget {
               ],
             ),
           ),
-          if (item.price != null)
+          if (item.formattedPrice != null)
             Text(
-              '\$${item.price!.toStringAsFixed(2)}',
+              item.formattedPrice!,
               style: GoogleFonts.manrope(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,

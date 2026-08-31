@@ -49,8 +49,22 @@ class OrderItem {
   final double? price;
   final String? note;
 
+  /// Formatted as Indonesian Rupiah (e.g. "Rp 42.000") — whole rupiah,
+  /// dot thousands separator, no decimals. `null` when there's no price.
+  String? get formattedPrice => price == null ? null : _formatRupiah(price!);
+
   Map<String, dynamic> toJson() => {
     'name': name,
     if (price != null) 'price': price,
   };
+}
+
+String _formatRupiah(double amount) {
+  final digits = amount.round().toString();
+  final buffer = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) buffer.write('.');
+    buffer.write(digits[i]);
+  }
+  return 'Rp $buffer';
 }
