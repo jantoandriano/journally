@@ -45,6 +45,34 @@ class HttpJournalRepository implements JournalRepository {
   }
 
   @override
+  Future<JournalEntry> fetchEntryById(String id) async {
+    final response = await _client
+        .get(Uri.parse('${ApiConfig.baseUrl}/entries/$id'))
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw JournalApiException(
+        'GET /entries/$id failed with status ${response.statusCode}',
+      );
+    }
+
+    return _toJournalEntry(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> deleteEntry(String id) async {
+    final response = await _client
+        .delete(Uri.parse('${ApiConfig.baseUrl}/entries/$id'))
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 204) {
+      throw JournalApiException(
+        'DELETE /entries/$id failed with status ${response.statusCode}',
+      );
+    }
+  }
+
+  @override
   Future<JournalEntry> createEntry({
     required String placeName,
     required String neighborhood,

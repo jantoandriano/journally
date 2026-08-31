@@ -3,6 +3,10 @@ import 'journal_entry.dart';
 abstract class JournalRepository {
   Future<List<JournalEntry>> fetchEntries();
 
+  Future<JournalEntry> fetchEntryById(String id);
+
+  Future<void> deleteEntry(String id);
+
   Future<JournalEntry> createEntry({
     required String placeName,
     required String neighborhood,

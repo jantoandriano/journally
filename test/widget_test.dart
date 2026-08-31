@@ -26,6 +26,16 @@ class _FakeJournalRepository implements JournalRepository {
   }
 
   @override
+  Future<JournalEntry> fetchEntryById(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteEntry(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<JournalEntry> createEntry({
     required String placeName,
     required String neighborhood,
