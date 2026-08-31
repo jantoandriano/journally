@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/journal_entry.dart';
 
@@ -17,8 +18,7 @@ class JournalCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AspectRatio(
-          aspectRatio: 4 / 5,
+        Expanded(
           child: Stack(
             children: [
               Positioned.fill(
@@ -85,7 +85,12 @@ class JournalCard extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: [
-            for (final item in visibleItems) _OrderTag(label: item),
+            for (final item in visibleItems)
+              _OrderTag(
+                label: item.price != null
+                    ? '${item.name} · \$${item.price!.toStringAsFixed(2)}'
+                    : item.name,
+              ),
             if (extraCount > 0) _OrderTag(label: '+$extraCount'),
           ],
         ),
@@ -105,9 +110,34 @@ class JournalCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (entry.lat != null && entry.lng != null)
+              _OpenInMapsButton(lat: entry.lat!, lng: entry.lng!),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _OpenInMapsButton extends StatelessWidget {
+  const _OpenInMapsButton({required this.lat, required this.lng});
+
+  final double lat;
+  final double lng;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(4),
+      onTap: () => launchUrl(
+        Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng'),
+        mode: LaunchMode.externalApplication,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Icon(Icons.directions_outlined, size: 15, color: colors.primary),
+      ),
     );
   }
 }

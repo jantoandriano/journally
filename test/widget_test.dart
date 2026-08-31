@@ -17,11 +17,38 @@ class _FakeJournalRepository implements JournalRepository {
         placeName: 'Place $i',
         neighborhood: 'Neighborhood $i',
         city: 'City',
-        orderItems: const ['Item'],
+        orderItems: [OrderItem(name: 'Item')],
         photoCount: 0,
         gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
       ),
     );
+  }
+
+  @override
+  Future<JournalEntry> createEntry({
+    required String placeName,
+    required String neighborhood,
+    required String city,
+    required List<OrderItem> orderItems,
+    double? lat,
+    double? lng,
+    String? placeId,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<JournalEntry> updateEntry(
+    String id, {
+    String? placeName,
+    String? neighborhood,
+    String? city,
+    List<OrderItem>? orderItems,
+    double? lat,
+    double? lng,
+    String? placeId,
+  }) {
+    throw UnimplementedError();
   }
 }
 

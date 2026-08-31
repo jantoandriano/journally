@@ -44,6 +44,78 @@ class HttpJournalRepository implements JournalRepository {
         .toList();
   }
 
+  @override
+  Future<JournalEntry> createEntry({
+    required String placeName,
+    required String neighborhood,
+    required String city,
+    required List<OrderItem> orderItems,
+    double? lat,
+    double? lng,
+    String? placeId,
+  }) async {
+    final response = await _client
+        .post(
+          Uri.parse('${ApiConfig.baseUrl}/entries'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'placeName': placeName,
+            'neighborhood': neighborhood,
+            'city': city,
+            'orderItems': orderItems.map((item) => item.toJson()).toList(),
+            if (lat != null) 'lat': lat,
+            if (lng != null) 'lng': lng,
+            if (placeId != null) 'placeId': placeId,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 201) {
+      throw JournalApiException(
+        'POST /entries failed with status ${response.statusCode}',
+      );
+    }
+
+    return _toJournalEntry(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<JournalEntry> updateEntry(
+    String id, {
+    String? placeName,
+    String? neighborhood,
+    String? city,
+    List<OrderItem>? orderItems,
+    double? lat,
+    double? lng,
+    String? placeId,
+  }) async {
+    final response = await _client
+        .patch(
+          Uri.parse('${ApiConfig.baseUrl}/entries/$id'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            if (placeName != null) 'placeName': placeName,
+            if (neighborhood != null) 'neighborhood': neighborhood,
+            if (city != null) 'city': city,
+            if (orderItems != null)
+              'orderItems': orderItems.map((item) => item.toJson()).toList(),
+            if (lat != null) 'lat': lat,
+            if (lng != null) 'lng': lng,
+            if (placeId != null) 'placeId': placeId,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw JournalApiException(
+        'PATCH /entries/$id failed with status ${response.statusCode}',
+      );
+    }
+
+    return _toJournalEntry(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
   JournalEntry _toJournalEntry(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>).cast<String>();
@@ -54,9 +126,14 @@ class HttpJournalRepository implements JournalRepository {
       placeName: json['placeName'] as String,
       neighborhood: json['neighborhood'] as String,
       city: json['city'] as String,
-      orderItems: (json['orderItems'] as List<dynamic>).cast<String>(),
+      orderItems: (json['orderItems'] as List<dynamic>)
+          .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
       photoCount: photoUrls.length,
       gradientColors: palette,
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
+      placeId: json['placeId'] as String?,
     );
   }
 }
