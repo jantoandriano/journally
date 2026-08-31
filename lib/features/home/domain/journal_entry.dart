@@ -10,6 +10,10 @@ class JournalEntry {
     required this.photoCount,
     required this.photoUrls,
     required this.gradientColors,
+    required this.visitedAt,
+    this.rating,
+    this.notes = '',
+    this.attributes = const [],
     this.lat,
     this.lng,
     this.placeId,
@@ -23,21 +27,27 @@ class JournalEntry {
   final int photoCount;
   final List<String> photoUrls;
   final List<Color> gradientColors;
+  final DateTime visitedAt;
+  final double? rating;
+  final String notes;
+  final List<String> attributes;
   final double? lat;
   final double? lng;
   final String? placeId;
 }
 
 class OrderItem {
-  OrderItem({required this.name, this.price});
+  OrderItem({required this.name, this.price, this.note});
 
   factory OrderItem.fromJson(Map<String, dynamic> j) => OrderItem(
     name: j['name'] as String,
     price: (j['price'] as num?)?.toDouble(),
+    note: j['note'] as String?,
   );
 
   final String name;
   final double? price;
+  final String? note;
 
   Map<String, dynamic> toJson() => {
     'name': name,

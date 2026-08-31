@@ -56,25 +56,30 @@ class _DetailFakeRepository implements JournalRepository {
   }
 }
 
-JournalEntry _buildEntry({double? lat, double? lng}) => JournalEntry(
-  id: 'e1',
-  placeName: 'Cafe One',
-  neighborhood: 'Downtown',
-  city: 'Metro City',
-  orderItems: [
-    OrderItem(name: 'Latte', price: 4.5),
-    OrderItem(name: 'Croissant', price: 3.25),
-  ],
-  photoCount: 2,
-  photoUrls: const ['/uploads/a.jpg', '/uploads/b.jpg'],
-  gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
-  lat: lat,
-  lng: lng,
-);
+JournalEntry _buildEntry({double? rating, List<String> attributes = const []}) =>
+    JournalEntry(
+      id: 'e1',
+      placeName: 'Cafe One',
+      neighborhood: 'Downtown',
+      city: 'Metro City',
+      orderItems: [
+        OrderItem(name: 'Latte', price: 4.5),
+        OrderItem(name: 'Croissant', price: 3.25, note: 'extra warm'),
+      ],
+      photoCount: 2,
+      photoUrls: const [],
+      gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
+      visitedAt: DateTime(2026, 3, 12),
+      rating: rating,
+      notes: 'Loved the corner table by the window.',
+      attributes: attributes,
+    );
 
 void main() {
-  testWidgets('shows order items and total spent', (tester) async {
-    final repo = _DetailFakeRepository(_buildEntry(lat: 40.0, lng: -73.0));
+  testWidgets('shows place name, order items, and notes', (tester) async {
+    final repo = _DetailFakeRepository(
+      _buildEntry(rating: 4.5, attributes: const ['Cozy', 'Great pastries']),
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -87,12 +92,13 @@ void main() {
     expect(find.text('Cafe One'), findsOneWidget);
     expect(find.text('Latte'), findsOneWidget);
     expect(find.text('Croissant'), findsOneWidget);
-    expect(find.text('\$7.75'), findsOneWidget);
+    expect(find.text('extra warm'), findsOneWidget);
+    expect(find.text('4.5'), findsOneWidget);
+    expect(find.text('Cozy'), findsOneWidget);
+    expect(find.text('Loved the corner table by the window.'), findsOneWidget);
   });
 
-  testWidgets('hides open-in-maps button when entry has no coordinates', (
-    tester,
-  ) async {
+  testWidgets('hides the rating chip when entry has no rating', (tester) async {
     final repo = _DetailFakeRepository(_buildEntry());
 
     await tester.pumpWidget(
@@ -103,10 +109,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.directions_outlined), findsNothing);
+    expect(find.byIcon(Icons.star), findsNothing);
   });
 
-  testWidgets('confirming delete calls deleteEntry and pops back', (
+  testWidgets('deleting from the overflow menu calls deleteEntry and pops back', (
     tester,
   ) async {
     final repo = _DetailFakeRepository(_buildEntry());
@@ -138,7 +144,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(EntryDetailScreen), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete entry'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();

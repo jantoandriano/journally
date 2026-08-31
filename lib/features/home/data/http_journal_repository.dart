@@ -160,6 +160,7 @@ class HttpJournalRepository implements JournalRepository {
       photoCount: photoUrls.length,
       photoUrls: photoUrls,
       gradientColors: palette,
+      visitedAt: DateTime.parse(json['visitedAt'] as String),
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
       placeId: json['placeId'] as String?,

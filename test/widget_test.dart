@@ -21,6 +21,7 @@ class _FakeJournalRepository implements JournalRepository {
         photoCount: 0,
         photoUrls: const [],
         gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
+        visitedAt: DateTime(2026, 1, 1),
       ),
     );
   }
