@@ -91,9 +91,9 @@ class HttpJournalRepository implements JournalRepository {
             'neighborhood': neighborhood,
             'city': city,
             'orderItems': orderItems.map((item) => item.toJson()).toList(),
-            if (lat != null) 'lat': lat,
-            if (lng != null) 'lng': lng,
-            if (placeId != null) 'placeId': placeId,
+            'lat': ?lat,
+            'lng': ?lng,
+            'placeId': ?placeId,
           }),
         )
         .timeout(const Duration(seconds: 10));
@@ -123,14 +123,14 @@ class HttpJournalRepository implements JournalRepository {
           Uri.parse('${ApiConfig.baseUrl}/entries/$id'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            if (placeName != null) 'placeName': placeName,
-            if (neighborhood != null) 'neighborhood': neighborhood,
-            if (city != null) 'city': city,
+            'placeName': ?placeName,
+            'neighborhood': ?neighborhood,
+            'city': ?city,
             if (orderItems != null)
               'orderItems': orderItems.map((item) => item.toJson()).toList(),
-            if (lat != null) 'lat': lat,
-            if (lng != null) 'lng': lng,
-            if (placeId != null) 'placeId': placeId,
+            'lat': ?lat,
+            'lng': ?lng,
+            'placeId': ?placeId,
           }),
         )
         .timeout(const Duration(seconds: 10));
