@@ -8,6 +8,7 @@ class JournalEntry {
     required this.city,
     required this.orderItems,
     required this.photoCount,
+    required this.photoUrls,
     required this.gradientColors,
     this.lat,
     this.lng,
@@ -20,6 +21,7 @@ class JournalEntry {
   final String city;
   final List<OrderItem> orderItems;
   final int photoCount;
+  final List<String> photoUrls;
   final List<Color> gradientColors;
   final double? lat;
   final double? lng;

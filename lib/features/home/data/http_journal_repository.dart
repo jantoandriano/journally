@@ -130,6 +130,7 @@ class HttpJournalRepository implements JournalRepository {
           .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
           .toList(),
       photoCount: photoUrls.length,
+      photoUrls: photoUrls,
       gradientColors: palette,
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),

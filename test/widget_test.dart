@@ -19,6 +19,7 @@ class _FakeJournalRepository implements JournalRepository {
         city: 'City',
         orderItems: [OrderItem(name: 'Item')],
         photoCount: 0,
+        photoUrls: const [],
         gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
       ),
     );
