@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:journally/features/home/domain/journal_entry.dart';
 import 'package:journally/features/home/domain/journal_repository.dart';
 import 'package:journally/features/home/presentation/entry_detail_screen.dart';
-import 'package:journally/features/home/presentation/home_providers.dart';
+import 'package:journally/features/home/presentation/providers/home_providers.dart';
 
 class _DetailFakeRepository implements JournalRepository {
   _DetailFakeRepository(this.entry);
@@ -34,6 +34,10 @@ class _DetailFakeRepository implements JournalRepository {
     required String neighborhood,
     required String city,
     required List<OrderItem> orderItems,
+    required DateTime visitedAt,
+    double? rating,
+    String notes = '',
+    List<String> attributes = const [],
     double? lat,
     double? lng,
     String? placeId,

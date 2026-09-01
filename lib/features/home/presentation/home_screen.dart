@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'home_providers.dart';
+import '../../add_journal/presentation/add_journal_screen.dart';
+import 'providers/home_providers.dart';
 import 'widgets/header.dart';
 import 'widgets/journal_card.dart';
 import 'widgets/search_bar.dart';
@@ -46,7 +47,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           backgroundColor: colors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          onPressed: () {},
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddEntryScreen()),
+          ),
           child: const Icon(Icons.add),
         ),
       ),
