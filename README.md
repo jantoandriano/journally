@@ -2,6 +2,17 @@
 
 A new Flutter project.
 
+## Project structure
+
+Code is organized by feature under `lib/features/<feature>/`, each with
+`presentation/`, `domain/`, and `data/` subfolders. A screen gets its own
+feature folder when it owns a distinct flow and its own local state (e.g.
+`add_journal`, a write flow). A screen that's a drill-down of another
+feature's data — `entry_detail_screen.dart`, which reads `home`'s
+`journalEntryProvider` and `JournalEntry` model — stays inside that
+feature (`home/presentation/`) instead of getting its own folder, to
+avoid importing providers/domain models across feature boundaries.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
