@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../domain/journal_entry.dart';
-import 'home_providers.dart';
+import 'providers/home_providers.dart';
 
 const _monthNames = [
   'Jan',
