@@ -1,4 +1,6 @@
-import 'dart:io';
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Base URL for journally-api.
 ///
@@ -7,11 +9,13 @@ import 'dart:io';
 /// - A physical Android device on the same network needs the host
 ///   machine's actual LAN IP, which can't be detected automatically;
 ///   override this if testing on one.
+/// - `dart:io`'s `Platform` throws on web, so it must be checked only
+///   after ruling out web via `kIsWeb`.
 class ApiConfig {
   const ApiConfig._();
 
   static String get baseUrl {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       return 'http://10.0.2.2:3000';
     }
     return 'http://localhost:3000';
