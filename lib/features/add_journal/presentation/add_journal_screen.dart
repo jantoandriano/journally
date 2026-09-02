@@ -30,6 +30,7 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
   final List<XFile> _photos = [];
   double _rating = 0;
   final List<OrderItem> _orderItems = [];
+  final List<Key> _orderItemKeys = [];
   final _notesController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
@@ -78,11 +79,17 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
   }
 
   void _addOrderItem() {
-    setState(() => _orderItems.add(OrderItem(name: 'New item')));
+    setState(() {
+      _orderItems.add(OrderItem(name: 'New item'));
+      _orderItemKeys.add(UniqueKey());
+    });
   }
 
   void _removeOrderItem(int index) {
-    setState(() => _orderItems.removeAt(index));
+    setState(() {
+      _orderItems.removeAt(index);
+      _orderItemKeys.removeAt(index);
+    });
   }
 
   Future<void> _pickDate() async {
@@ -193,7 +200,7 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'New entry',
+                    'New Journal',
                     style: GoogleFonts.fraunces(
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
@@ -249,7 +256,10 @@ class _AddEntryScreenState extends ConsumerState<AddEntryScreen> {
                   ),
                   for (var i = 0; i < _orderItems.length; i++)
                     OrderItemTile(
+                      key: _orderItemKeys[i],
                       item: _orderItems[i],
+                      onChanged: (updated) =>
+                          setState(() => _orderItems[i] = updated),
                       onRemove: () => _removeOrderItem(i),
                     ),
                   const SectionDivider(),
