@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:journally/features/home/domain/journal_entry.dart';
+
+import 'add_journal_colors.dart';
+
+class OrderItemTile extends StatelessWidget {
+  const OrderItemTile({super.key, required this.item, required this.onRemove});
+
+  final OrderItem item;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [colors.primaryContainer, colors.primary],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.note ?? 'Add a note',
+                  style: GoogleFonts.manrope(
+                    fontSize: 11.5,
+                    color: colors.outline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (item.formattedPrice != null) ...[
+            Text(
+              item.formattedPrice!,
+              style: GoogleFonts.manrope(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.close, size: 16, color: hairline),
+          ),
+        ],
+      ),
+    );
+  }
+}
