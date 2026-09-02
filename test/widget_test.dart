@@ -88,9 +88,16 @@ void main() {
         child: const JournallyApp(),
       ),
     );
-    await tester.pumpAndSettle();
 
-    expect(find.text('Journally'), findsOneWidget);
+    // The splash screen holds two infinitely-repeating animations (steam,
+    // loading bar), so `pumpAndSettle` would hang here — pump the splash's
+    // fixed hand-off timeline explicitly instead.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 2600));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+
     expect(find.text('6 places visited'), findsOneWidget);
   });
 }

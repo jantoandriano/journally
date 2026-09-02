@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'features/home/presentation/home_screen.dart';
+import 'features/splash/presentation/splash_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: JournallyApp()));
@@ -89,7 +89,7 @@ class JournallyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(colorScheme: _lightScheme, useMaterial3: true),
       darkTheme: ThemeData(colorScheme: _darkScheme, useMaterial3: true),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
