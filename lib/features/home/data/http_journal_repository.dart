@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import '../domain/journal_entry.dart';
 import '../domain/journal_repository.dart';
@@ -150,6 +151,31 @@ class HttpJournalRepository implements JournalRepository {
     }
 
     return _toJournalEntry(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> uploadPhoto(String entryId, XFile photo) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConfig.baseUrl}/entries/$entryId/photos'),
+    );
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'photo',
+        await photo.readAsBytes(),
+        filename: photo.name,
+      ),
+    );
+
+    final response = await _client
+        .send(request)
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 201) {
+      throw JournalApiException(
+        'POST /entries/$entryId/photos failed with status ${response.statusCode}',
+      );
+    }
   }
 
   JournalEntry _toJournalEntry(Map<String, dynamic> json) {

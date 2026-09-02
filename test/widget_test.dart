@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:journally/features/home/domain/journal_entry.dart';
 import 'package:journally/features/home/domain/journal_repository.dart';
@@ -64,6 +65,11 @@ class _FakeJournalRepository implements JournalRepository {
     double? lng,
     String? placeId,
   }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> uploadPhoto(String entryId, XFile photo) {
     throw UnimplementedError();
   }
 }

@@ -1,3 +1,5 @@
+import 'package:image_picker/image_picker.dart';
+
 import 'journal_entry.dart';
 
 abstract class JournalRepository {
@@ -6,6 +8,8 @@ abstract class JournalRepository {
   Future<JournalEntry> fetchEntryById(String id);
 
   Future<void> deleteEntry(String id);
+
+  Future<void> uploadPhoto(String entryId, XFile photo);
 
   Future<JournalEntry> createEntry({
     required String placeName,
