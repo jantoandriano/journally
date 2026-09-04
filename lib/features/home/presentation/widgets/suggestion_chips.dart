@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SuggestionChips extends StatefulWidget {
-  const SuggestionChips({super.key, required this.labels});
+class SuggestionChips extends StatelessWidget {
+  const SuggestionChips({
+    super.key,
+    required this.labels,
+    this.selectedIndex,
+    this.onSelected,
+  });
 
   final List<String> labels;
-
-  @override
-  State<SuggestionChips> createState() => _SuggestionChipsState();
-}
-
-class _SuggestionChipsState extends State<SuggestionChips> {
-  int? _selectedIndex;
+  final int? selectedIndex;
+  final ValueChanged<int?>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +21,10 @@ class _SuggestionChipsState extends State<SuggestionChips> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: widget.labels.length,
+        itemCount: labels.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final selected = _selectedIndex == index;
+          final selected = selectedIndex == index;
           return Material(
             color: selected ? colors.primaryContainer : colors.surface,
             shape: RoundedRectangleBorder(
@@ -37,13 +37,12 @@ class _SuggestionChipsState extends State<SuggestionChips> {
               borderRadius: BorderRadius.circular(19),
               splashColor: colors.surfaceContainerHighest,
               highlightColor: colors.surfaceContainerHighest,
-              onTap: () =>
-                  setState(() => _selectedIndex = selected ? null : index),
+              onTap: () => onSelected?.call(selected ? null : index),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 alignment: Alignment.center,
                 child: Text(
-                  widget.labels[index],
+                  labels[index],
                   style: GoogleFonts.manrope(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

@@ -178,6 +178,31 @@ class HttpJournalRepository implements JournalRepository {
     }
   }
 
+  @override
+  Future<List<JournalEntry>> fetchNearbyEntries({
+    required double lat,
+    required double lng,
+    double radiusKm = 5,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/entries/nearby').replace(
+      queryParameters: {'lat': '$lat', 'lng': '$lng', 'radiusKm': '$radiusKm'},
+    );
+    final response = await _client
+        .get(uri)
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw JournalApiException(
+        'GET /entries/nearby failed with status ${response.statusCode}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body) as List<dynamic>;
+    return decoded
+        .map((json) => _toJournalEntry(json as Map<String, dynamic>))
+        .toList();
+  }
+
   JournalEntry _toJournalEntry(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>).cast<String>();

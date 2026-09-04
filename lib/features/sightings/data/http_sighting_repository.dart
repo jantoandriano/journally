@@ -59,6 +59,37 @@ class HttpSightingRepository implements SightingsRepository {
     return _toSightingEntry(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  @override
+  Future<List<Sighting>> fetchNearbySightings({
+    required double lat,
+    required double lng,
+    double radiusKm = 5,
+    Species? species,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/sightings/nearby').replace(
+      queryParameters: {
+        'lat': '$lat',
+        'lng': '$lng',
+        'radiusKm': '$radiusKm',
+        if (species != null) 'species': species.name,
+      },
+    );
+    final response = await _client
+        .get(uri)
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw JournalApiException(
+        'GET /sightings/nearby failed with status ${response.statusCode}',
+      );
+    }
+
+    final decoded = jsonDecode(response.body) as List<dynamic>;
+    return decoded
+        .map((json) => _toSightingEntry(json as Map<String, dynamic>))
+        .toList();
+  }
+
   Sighting _toSightingEntry(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>?)?.cast<String>();

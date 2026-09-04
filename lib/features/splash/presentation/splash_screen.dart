@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:journally/core/location_provider.dart';
 import 'package:journally/features/home/presentation/home_screen.dart';
 import 'package:journally/features/home/presentation/providers/home_providers.dart';
 import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
@@ -50,6 +51,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await Future.wait([
       _settle(ref.read(journalEntriesProvider.future)),
       _settle(ref.read(sightingsProvider.future)),
+      _settle(ref.read(deviceLocationProvider.future)),
     ]);
   }
 

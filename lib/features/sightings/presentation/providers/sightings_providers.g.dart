@@ -126,9 +126,8 @@ final class SightingByIdProvider
 
   @$internal
   @override
-  $FutureProviderElement<Sighting> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  $FutureProviderElement<Sighting> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<Sighting> create(Ref ref) {
@@ -165,4 +164,79 @@ final class SightingByIdFamily extends $Family
 
   @override
   String toString() => r'sightingByIdProvider';
+}
+
+@ProviderFor(nearbySightings)
+final nearbySightingsProvider = NearbySightingsFamily._();
+
+final class NearbySightingsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Sighting>>,
+          List<Sighting>,
+          FutureOr<List<Sighting>>
+        >
+    with $FutureModifier<List<Sighting>>, $FutureProvider<List<Sighting>> {
+  NearbySightingsProvider._({
+    required NearbySightingsFamily super.from,
+    required Species? super.argument,
+  }) : super(
+         retry: null,
+         name: r'nearbySightingsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$nearbySightingsHash();
+
+  @override
+  String toString() {
+    return r'nearbySightingsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Sighting>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Sighting>> create(Ref ref) {
+    final argument = this.argument as Species?;
+    return nearbySightings(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is NearbySightingsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$nearbySightingsHash() => r'e5f6071829384756a1b2c3d4e5f6071829384756';
+
+final class NearbySightingsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Sighting>>, Species?> {
+  NearbySightingsFamily._()
+    : super(
+        retry: null,
+        name: r'nearbySightingsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  NearbySightingsProvider call(Species? species) =>
+      NearbySightingsProvider._(argument: species, from: this);
+
+  @override
+  String toString() => r'nearbySightingsProvider';
 }

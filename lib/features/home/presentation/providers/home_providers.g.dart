@@ -97,6 +97,47 @@ final class JournalEntriesProvider
 
 String _$journalEntriesHash() => r'ac07e30eaaaedcc8242ef26a3d22c7dbaea285a0';
 
+@ProviderFor(nearbyEntries)
+final nearbyEntriesProvider = NearbyEntriesProvider._();
+
+final class NearbyEntriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<JournalEntry>>,
+          List<JournalEntry>,
+          FutureOr<List<JournalEntry>>
+        >
+    with
+        $FutureModifier<List<JournalEntry>>,
+        $FutureProvider<List<JournalEntry>> {
+  NearbyEntriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nearbyEntriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nearbyEntriesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<JournalEntry>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<JournalEntry>> create(Ref ref) {
+    return nearbyEntries(ref);
+  }
+}
+
+String _$nearbyEntriesHash() => r'f6071829384756a1b2c3d4e5f6071829384756a1';
+
 @ProviderFor(journalEntry)
 final journalEntryProvider = JournalEntryFamily._();
 

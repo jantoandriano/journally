@@ -64,6 +64,15 @@ class _DetailFakeRepository implements JournalRepository {
   Future<void> uploadPhoto(String entryId, XFile photo) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<JournalEntry>> fetchNearbyEntries({
+    required double lat,
+    required double lng,
+    double radiusKm = 5,
+  }) {
+    throw UnimplementedError();
+  }
 }
 
 JournalEntry _buildEntry({

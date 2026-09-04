@@ -21,6 +21,25 @@ Future<JournalEntry> journalEntry(Ref ref, String id) {
   return ref.watch(journalRepositoryProvider).fetchEntryById(id);
 }
 
+/// Central Kemang, South Jakarta — used only by the "Near Kemang" cafe
+/// chip. This is a one-off named-place override, not the user's device
+/// location; the backend has no neighborhood-to-coordinate lookup, so
+/// this is hardcoded here rather than invented server-side.
+const kemangLat = -6.2607;
+const kemangLng = 106.8133;
+const kemangRadiusKm = 2.0;
+
+@riverpod
+Future<List<JournalEntry>> nearbyEntries(Ref ref) {
+  return ref
+      .watch(journalRepositoryProvider)
+      .fetchNearbyEntries(
+        lat: kemangLat,
+        lng: kemangLng,
+        radiusKm: kemangRadiusKm,
+      );
+}
+
 @riverpod
 class SearchQuery extends _$SearchQuery {
   @override

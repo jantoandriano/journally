@@ -35,4 +35,10 @@ abstract class JournalRepository {
     double? lng,
     String? placeId,
   });
+
+  Future<List<JournalEntry>> fetchNearbyEntries({
+    required double lat,
+    required double lng,
+    double radiusKm = 5,
+  });
 }
