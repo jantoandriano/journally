@@ -29,11 +29,7 @@ class HttpSightingRepository implements SightingsRepository {
   @override
   Future<List<Sighting>> fetchSightings() async {
     final response = await _client
-        .get(
-          Uri.parse(
-            '${ApiConfig.baseUrl}/sightings/nearby?lat=37.77&lng=-122.42&radiusKm=5',
-          ),
-        )
+        .get(Uri.parse('${ApiConfig.baseUrl}/sightings'))
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 200) {

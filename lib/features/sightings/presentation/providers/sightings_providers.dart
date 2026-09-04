@@ -1,4 +1,4 @@
-import 'package:journally/features/sightings/data/sighting_repository.dart';
+import 'package:journally/features/sightings/data/http_sighting_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/sighting.dart';
