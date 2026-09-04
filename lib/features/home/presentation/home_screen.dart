@@ -6,7 +6,6 @@ import '../../sightings/presentation/add_sighting_screen.dart';
 import '../../sightings/presentation/providers/sightings_providers.dart';
 import '../../sightings/presentation/widgets/sighting_card.dart';
 import '../../add_journal/presentation/add_journal_screen.dart';
-import '../domain/journal_entry.dart';
 import 'providers/home_providers.dart';
 import 'widgets/header.dart';
 import 'widgets/home_tab_switch.dart';
@@ -14,64 +13,13 @@ import 'widgets/journal_card.dart';
 import 'widgets/search_bar.dart';
 import 'widgets/suggestion_chips.dart';
 
-const _cafeChips = [
-  'Near Kemang',
-  'Iced coffee spots',
-  'Visited this month',
-  'Good for laptop work',
-];
+// Only chips backed by a real API query are offered — no client-side-only
+// filters (no structured fields exist server-side for "iced coffee",
+// "visited this month", "laptop friendly", "not fed yet", or "seen this
+// week", so those were decorative and have been removed).
+const _cafeChips = ['Near Kemang'];
 
-const _sightingChips = [
-  'Cats near me',
-  'Dogs near me',
-  'Not fed yet',
-  'Seen this week',
-];
-
-/// Applies the client-side portion of a cafe chip's filter. Chip 0 ("Near
-/// Kemang") is a geo query handled by which provider is watched — by the
-/// time entries reach here it needs no further filtering. Chips 1-3 filter
-/// over whatever list was fetched.
-List<JournalEntry> _filterCafeEntries(List<JournalEntry> entries, int? chip) {
-  switch (chip) {
-    case 1: // Iced coffee spots — best-effort keyword match, no structured
-      // drink/attribute field exists for this.
-      return entries
-          .where((e) => e.notes.toLowerCase().contains('iced'))
-          .toList();
-    case 2: // Visited this month
-      final now = DateTime.now();
-      return entries
-          .where(
-            (e) =>
-                e.visitedAt.year == now.year && e.visitedAt.month == now.month,
-          )
-          .toList();
-    case 3: // Good for laptop work
-      return entries
-          .where((e) => e.attributes.contains('Laptop friendly'))
-          .toList();
-    default:
-      return entries;
-  }
-}
-
-/// Applies the client-side portion of a sighting chip's filter. Chips 0/1
-/// ("Cats near me"/"Dogs near me") are geo+species queries handled by which
-/// provider is watched. Chips 2/3 filter over whatever list was fetched.
-List<Sighting> _filterSightings(List<Sighting> sightings, int? chip) {
-  switch (chip) {
-    case 2: // Not fed yet
-      return sightings.where((s) => !s.fed).toList();
-    case 3: // Seen this week — trailing 7 days from now, not calendar-week.
-      final cutoff = DateTime.now().subtract(const Duration(days: 7));
-      return sightings
-          .where((s) => s.createdAt != null && s.createdAt!.isAfter(cutoff))
-          .toList();
-    default:
-      return sightings;
-  }
-}
+const _sightingChips = ['Cats near me', 'Dogs near me'];
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -177,8 +125,7 @@ class _CafesFeed extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
 
     final subtitle = entriesAsync.when(
-      data: (entries) =>
-          '${_filterCafeEntries(entries, selectedChip).length} places visited',
+      data: (entries) => '${entries.length} places visited',
       loading: () => '… places visited',
       error: (_, _) => '0 places visited',
     );
@@ -197,8 +144,7 @@ class _CafesFeed extends ConsumerWidget {
           ),
         ),
       ),
-      data: (rawEntries) {
-        final entries = _filterCafeEntries(rawEntries, selectedChip);
+      data: (entries) {
         return SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           sliver: SliverGrid(
@@ -281,8 +227,7 @@ class _SightingsFeed extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
 
     final subtitle = sightingsAsync.when(
-      data: (sightings) =>
-          '${_filterSightings(sightings, selectedChip).length} sightings logged',
+      data: (sightings) => '${sightings.length} sightings logged',
       loading: () => '… sightings logged',
       error: (_, _) => '0 sightings logged',
     );
@@ -301,8 +246,7 @@ class _SightingsFeed extends ConsumerWidget {
           ),
         ),
       ),
-      data: (rawSightings) {
-        final sightings = _filterSightings(rawSightings, selectedChip);
+      data: (sightings) {
         return SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           sliver: SliverGrid(
