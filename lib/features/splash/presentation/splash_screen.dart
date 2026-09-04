@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:journally/features/home/presentation/home_screen.dart';
 import 'package:journally/features/home/presentation/providers/home_providers.dart';
+import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
 
 import 'splash_timing.dart';
 import 'widgets/ambient_shapes.dart';
@@ -18,36 +19,43 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+    with TickerProviderStateMixin {
+  late final AnimationController _entry;
+  late final AnimationController _motif;
   late final Animation<double> _entrance;
   bool _receding = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: SplashTiming.minDisplay,
-    );
+    _entry = AnimationController(vsync: this, duration: SplashTiming.entry);
+    _motif = AnimationController(vsync: this, duration: SplashTiming.motif);
     _entrance = CurvedAnimation(
-      parent: _controller,
+      parent: _entry,
       curve: Interval(
         0,
-        SplashTiming.entrance.inMilliseconds /
-            SplashTiming.minDisplay.inMilliseconds,
+        SplashTiming.entranceIn.inMilliseconds /
+            SplashTiming.entry.inMilliseconds,
         curve: Curves.easeOut,
       ),
     );
 
-    final animFuture = _controller.forward();
+    final animFuture = _entry.forward();
+    _motif.repeat();
     final dataFuture = _warmUp();
     Future.wait([animFuture, dataFuture]).then((_) => _handOff());
   }
 
   Future<void> _warmUp() async {
+    await Future.wait([
+      _settle(ref.read(journalEntriesProvider.future)),
+      _settle(ref.read(sightingsProvider.future)),
+    ]);
+  }
+
+  Future<void> _settle(Future<void> future) async {
     try {
-      await ref.read(journalEntriesProvider.future);
+      await future;
     } catch (_) {
       // Settled, not necessarily successful — home renders its own error state.
     }
@@ -69,16 +77,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _entry.dispose();
+    _motif.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final entriesAsync = ref.watch(journalEntriesProvider);
-    final status = entriesAsync.when(
-      data: (entries) => 'Jakarta · ${entries.length} places',
+    final sightingsAsync = ref.watch(sightingsProvider);
+    final status = sightingsAsync.when(
+      data: (sightings) => 'Jakarta · ${sightings.length} sightings',
       loading: () => 'Jakarta',
       error: (_, _) => 'Jakarta',
     );
@@ -108,9 +117,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   opacity: _receding ? 0.42 : 1.0,
                   duration: SplashTiming.recede,
                   curve: Curves.easeIn,
-                  child: const Column(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: [AppMark(), SizedBox(height: 24), Wordmark()],
+                    children: [
+                      AppMark(motif: _motif),
+                      const SizedBox(height: 24),
+                      const Wordmark(),
+                    ],
                   ),
                 ),
               ),

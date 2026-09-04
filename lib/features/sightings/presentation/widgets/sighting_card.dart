@@ -56,7 +56,7 @@ class SightingCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              sighting.description,
+              sighting.notes,
               style: GoogleFonts.fraunces(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -66,7 +66,7 @@ class SightingCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 6),
-            FedPill(wasFed: sighting.wasFed),
+            FedPill(wasFed: sighting.fed),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -74,7 +74,7 @@ class SightingCard extends StatelessWidget {
                 const SizedBox(width: 3),
                 Expanded(
                   child: Text(
-                    '${sighting.street}, ${sighting.area}',
+                    sighting.placeName,
                     style: GoogleFonts.manrope(
                       fontSize: 11.5,
                       color: colors.outline,

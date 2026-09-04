@@ -181,7 +181,8 @@ class HttpJournalRepository implements JournalRepository {
   JournalEntry _toJournalEntry(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>).cast<String>();
-    final palette = _gradientPalette[id.hashCode.abs() % _gradientPalette.length];
+    final palette =
+        _gradientPalette[id.hashCode.abs() % _gradientPalette.length];
 
     return JournalEntry(
       id: id,

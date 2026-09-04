@@ -43,13 +43,18 @@ class _PlaceSearchScreenState extends ConsumerState<PlaceSearchScreen> {
       return;
     }
 
-    _debounce = Timer(const Duration(milliseconds: 450), () => _search(trimmed));
+    _debounce = Timer(
+      const Duration(milliseconds: 450),
+      () => _search(trimmed),
+    );
   }
 
   Future<void> _search(String query) async {
     setState(() => _state = _SearchState.loading);
     try {
-      final results = await ref.read(placeSearchRepositoryProvider).search(query);
+      final results = await ref
+          .read(placeSearchRepositoryProvider)
+          .search(query);
       if (!mounted) return;
       setState(() {
         _results = results;
@@ -168,7 +173,10 @@ class _PlaceSearchScreenState extends ConsumerState<PlaceSearchScreen> {
         return Center(
           child: Text(
             "Couldn't search right now.",
-            style: GoogleFonts.manrope(fontSize: 13.5, color: colors.onSurfaceVariant),
+            style: GoogleFonts.manrope(
+              fontSize: 13.5,
+              color: colors.onSurfaceVariant,
+            ),
           ),
         );
       case _SearchState.loaded:
@@ -186,4 +194,3 @@ class _PlaceSearchScreenState extends ConsumerState<PlaceSearchScreen> {
     }
   }
 }
-

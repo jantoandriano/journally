@@ -28,7 +28,7 @@ class Wordmark extends StatelessWidget {
             _Rule(),
             const SizedBox(width: 9),
             Text(
-              'CAFES WORTH REMEMBERING',
+              'STREET CATS & DOGS',
               style: GoogleFonts.manrope(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

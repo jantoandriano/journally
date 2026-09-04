@@ -2,40 +2,41 @@ import 'package:flutter/material.dart';
 
 import '../splash_timing.dart';
 
-/// The 96px logo tile: a filled square with a line-art coffee cup and two
-/// looping steam strokes. Owns its own steam animation — independent of the
-/// splash screen's entrance/hand-off controller.
+/// The 96px logo tile: a filled square whose icon swaps between a coffee
+/// cup (cafes) and a paw print (sightings), cross-fading on [motif] — a
+/// single repeating controller owned by the splash screen. Two pulse
+/// rings loop independently behind/over the tile, owned locally.
 class AppMark extends StatefulWidget {
-  const AppMark({super.key});
+  const AppMark({super.key, required this.motif});
+
+  final Animation<double> motif;
 
   @override
   State<AppMark> createState() => _AppMarkState();
 }
 
 class _AppMarkState extends State<AppMark> with TickerProviderStateMixin {
-  late final AnimationController _steamA;
-  late final AnimationController _steamB;
+  late final AnimationController _pulseA;
+  late final AnimationController _pulseB;
 
   @override
   void initState() {
     super.initState();
-    _steamA = AnimationController(
+    _pulseA = AnimationController(vsync: this, duration: SplashTiming.pulseLoop)
+      ..repeat();
+    _pulseB = AnimationController(
       vsync: this,
-      duration: SplashTiming.steamLoop,
-    )..repeat();
-    _steamB = AnimationController(
-      vsync: this,
-      duration: SplashTiming.steamLoop,
+      duration: SplashTiming.pulseLoop,
     );
-    Future.delayed(SplashTiming.steamOffset, () {
-      if (mounted) _steamB.repeat();
+    Future.delayed(SplashTiming.pulseOffset, () {
+      if (mounted) _pulseB.repeat();
     });
   }
 
   @override
   void dispose() {
-    _steamA.dispose();
-    _steamB.dispose();
+    _pulseA.dispose();
+    _pulseB.dispose();
     super.dispose();
   }
 
@@ -43,6 +44,29 @@ class _AppMarkState extends State<AppMark> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
+    return SizedBox(
+      width: 140,
+      height: 140,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          _PulseRing(animation: _pulseA, color: colors.primary),
+          _Tile(motif: widget.motif, colors: colors),
+          _PulseRing(animation: _pulseB, color: colors.primary),
+        ],
+      ),
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile({required this.motif, required this.colors});
+
+  final Animation<double> motif;
+  final ColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: 96,
       height: 96,
@@ -57,65 +81,140 @@ class _AppMarkState extends State<AppMark> with TickerProviderStateMixin {
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            top: 13,
-            child: SizedBox(
-              width: 46,
-              height: 16,
-              child: Stack(
-                children: [
-                  _SteamStroke(animation: _steamA, left: 14),
-                  _SteamStroke(animation: _steamB, left: 26),
-                ],
+      child: AnimatedBuilder(
+        animation: motif,
+        builder: (context, child) {
+          final t = motif.value;
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              _Motif(
+                opacity: _cupOpacity(t),
+                scale: _cupScale(t),
+                rotationDeg: _cupRotationDeg(t),
+                child: const SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: CustomPaint(painter: _CoffeeCupPainter()),
+                ),
               ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: SizedBox(
-              width: 46,
-              height: 46,
-              child: CustomPaint(painter: _CoffeeCupPainter()),
-            ),
-          ),
-        ],
+              _Motif(
+                opacity: _pawOpacity(t),
+                scale: _pawScale(t),
+                rotationDeg: _pawRotationDeg(t),
+                child: const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: CustomPaint(painter: _PawPrintPainter()),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _SteamStroke extends StatelessWidget {
-  const _SteamStroke({required this.animation, required this.left});
+// Motif swap timeline (t in [0, 1] across one _motif cycle):
+//   [0.00, 0.34] cup holds, paw hidden
+//   [0.34, 0.44] cup leaves (-> scale 0.70, -14deg), paw arrives (from scale 0.70, +14deg)
+//   [0.44, 0.90] paw holds, cup hidden
+//   [0.90, 1.00] paw leaves (-> scale 0.70, +14deg), cup arrives back (from scale 0.70, -14deg)
+double _ease(double t) => Curves.easeInOut.transform(t.clamp(0.0, 1.0));
+
+double _cupOpacity(double t) {
+  if (t <= 0.34) return 1;
+  if (t <= 0.44) return 1 - _ease((t - 0.34) / 0.10);
+  if (t <= 0.90) return 0;
+  return _ease((t - 0.90) / 0.10);
+}
+
+double _cupScale(double t) {
+  if (t <= 0.34) return 1;
+  if (t <= 0.44) return 1 - 0.30 * _ease((t - 0.34) / 0.10);
+  if (t <= 0.90) return 0.70;
+  return 0.70 + 0.30 * _ease((t - 0.90) / 0.10);
+}
+
+double _cupRotationDeg(double t) {
+  if (t <= 0.34) return 0;
+  if (t <= 0.44) return -14 * _ease((t - 0.34) / 0.10);
+  if (t <= 0.90) return -14;
+  return -14 + 14 * _ease((t - 0.90) / 0.10);
+}
+
+double _pawOpacity(double t) {
+  if (t <= 0.34) return 0;
+  if (t <= 0.44) return _ease((t - 0.34) / 0.10);
+  if (t <= 0.90) return 1;
+  return 1 - _ease((t - 0.90) / 0.10);
+}
+
+double _pawScale(double t) {
+  if (t <= 0.34) return 0.70;
+  if (t <= 0.44) return 0.70 + 0.30 * _ease((t - 0.34) / 0.10);
+  if (t <= 0.90) return 1;
+  return 1 - 0.30 * _ease((t - 0.90) / 0.10);
+}
+
+double _pawRotationDeg(double t) {
+  if (t <= 0.34) return 14;
+  if (t <= 0.44) return 14 - 14 * _ease((t - 0.34) / 0.10);
+  if (t <= 0.90) return 0;
+  return 14 * _ease((t - 0.90) / 0.10);
+}
+
+class _Motif extends StatelessWidget {
+  const _Motif({
+    required this.opacity,
+    required this.scale,
+    required this.rotationDeg,
+    required this.child,
+  });
+
+  final double opacity;
+  final double scale;
+  final double rotationDeg;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: opacity.clamp(0.0, 1.0),
+      child: Transform.scale(
+        scale: scale,
+        child: Transform.rotate(
+          angle: rotationDeg * 3.1415926535 / 180,
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _PulseRing extends StatelessWidget {
+  const _PulseRing({required this.animation, required this.color});
 
   final Animation<double> animation;
-  final double left;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
-        // Rises ~7px and fades out over the loop.
         final t = animation.value;
-        final dy = -7 * t;
-        final opacity = 0.8 * (1 - t);
-        return Positioned(
-          left: left,
-          bottom: 0,
-          child: Transform.translate(
-            offset: Offset(0, dy),
-            child: Opacity(
-              opacity: opacity.clamp(0.0, 1.0),
-              child: Container(
-                width: 2.4,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(1.2),
-                ),
+        return Opacity(
+          opacity: (0.45 * (1 - t)).clamp(0.0, 1.0),
+          child: Transform.scale(
+            scale: 1 + 0.34 * t,
+            child: Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(28),
               ),
             ),
           ),
@@ -134,7 +233,8 @@ class _CoffeeCupPainter extends CustomPainter {
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.6
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     final w = size.width;
     final h = size.height;
@@ -163,4 +263,32 @@ class _CoffeeCupPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CoffeeCupPainter oldDelegate) => false;
+}
+
+class _PawPrintPainter extends CustomPainter {
+  const _PawPrintPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    void ellipse(double cx, double cy, double rx, double ry) {
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(cx, cy), width: rx * 2, height: ry * 2),
+        paint,
+      );
+    }
+
+    // 48x48 viewBox: one pad, four toes.
+    ellipse(24, 32, 10.5, 8.5);
+    ellipse(11.5, 21, 4.6, 6);
+    ellipse(19.5, 13.5, 4.4, 6.2);
+    ellipse(28.5, 13.5, 4.4, 6.2);
+    ellipse(36.5, 21, 4.6, 6);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PawPrintPainter oldDelegate) => false;
 }

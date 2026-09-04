@@ -37,9 +37,8 @@ class _SuggestionChipsState extends State<SuggestionChips> {
               borderRadius: BorderRadius.circular(19),
               splashColor: colors.surfaceContainerHighest,
               highlightColor: colors.surfaceContainerHighest,
-              onTap: () => setState(
-                () => _selectedIndex = selected ? null : index,
-              ),
+              onTap: () =>
+                  setState(() => _selectedIndex = selected ? null : index),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 alignment: Alignment.center,

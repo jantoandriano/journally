@@ -80,8 +80,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: IndexedStack(
           index: _tab.index,
           children: [
-            _CafesFeed(searchController: _searchController, tab: _tab, onTabChanged: _setTab),
-            _SightingsFeed(searchController: _searchController, tab: _tab, onTabChanged: _setTab),
+            _CafesFeed(
+              searchController: _searchController,
+              tab: _tab,
+              onTabChanged: _setTab,
+            ),
+            _SightingsFeed(
+              searchController: _searchController,
+              tab: _tab,
+              onTabChanged: _setTab,
+            ),
           ],
         ),
       ),
@@ -169,7 +177,9 @@ class _CafesFeed extends ConsumerWidget {
         ),
         const SliverPadding(
           padding: EdgeInsets.only(top: 16),
-          sliver: SliverToBoxAdapter(child: SuggestionChips(labels: _cafeChips)),
+          sliver: SliverToBoxAdapter(
+            child: SuggestionChips(labels: _cafeChips),
+          ),
         ),
         contentSliver,
       ],

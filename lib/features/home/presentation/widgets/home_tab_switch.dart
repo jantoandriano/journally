@@ -25,11 +25,8 @@ class HomeTabSwitch extends StatelessWidget {
             child: _Segment(
               label: 'Cafes',
               selected: tab == HomeTab.cafes,
-              icon: (color) => Icon(
-                Icons.local_cafe_outlined,
-                size: 15,
-                color: color,
-              ),
+              icon: (color) =>
+                  Icon(Icons.local_cafe_outlined, size: 15, color: color),
               onTap: () => onChanged(HomeTab.cafes),
             ),
           ),
@@ -109,10 +106,7 @@ class _PawIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size.square(size),
-      painter: _PawPainter(color),
-    );
+    return CustomPaint(size: Size.square(size), painter: _PawPainter(color));
   }
 }
 

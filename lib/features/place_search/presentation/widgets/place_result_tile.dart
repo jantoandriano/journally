@@ -31,7 +31,11 @@ class PlaceResultTile extends StatelessWidget {
                 color: colors.surfaceContainerHigh,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.place_outlined, size: 18, color: colors.primary),
+              child: Icon(
+                Icons.place_outlined,
+                size: 18,
+                color: colors.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -54,7 +58,10 @@ class PlaceResultTile extends StatelessWidget {
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(fontSize: 12.5, color: colors.outline),
+                      style: GoogleFonts.manrope(
+                        fontSize: 12.5,
+                        color: colors.outline,
+                      ),
                     ),
                   ],
                 ],

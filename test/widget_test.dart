@@ -81,9 +81,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          journalRepositoryProvider.overrideWithValue(
-            _FakeJournalRepository(),
-          ),
+          journalRepositoryProvider.overrideWithValue(_FakeJournalRepository()),
         ],
         child: const JournallyApp(),
       ),

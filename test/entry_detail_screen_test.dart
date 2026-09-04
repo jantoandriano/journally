@@ -66,24 +66,26 @@ class _DetailFakeRepository implements JournalRepository {
   }
 }
 
-JournalEntry _buildEntry({double? rating, List<String> attributes = const []}) =>
-    JournalEntry(
-      id: 'e1',
-      placeName: 'Cafe One',
-      neighborhood: 'Downtown',
-      city: 'Metro City',
-      orderItems: [
-        OrderItem(name: 'Latte', price: 4.5),
-        OrderItem(name: 'Croissant', price: 3.25, note: 'extra warm'),
-      ],
-      photoCount: 2,
-      photoUrls: const [],
-      gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
-      visitedAt: DateTime(2026, 3, 12),
-      rating: rating,
-      notes: 'Loved the corner table by the window.',
-      attributes: attributes,
-    );
+JournalEntry _buildEntry({
+  double? rating,
+  List<String> attributes = const [],
+}) => JournalEntry(
+  id: 'e1',
+  placeName: 'Cafe One',
+  neighborhood: 'Downtown',
+  city: 'Metro City',
+  orderItems: [
+    OrderItem(name: 'Latte', price: 4.5),
+    OrderItem(name: 'Croissant', price: 3.25, note: 'extra warm'),
+  ],
+  photoCount: 2,
+  photoUrls: const [],
+  gradientColors: const [Color(0xFFE7C9A5), Color(0xFFB8763F)],
+  visitedAt: DateTime(2026, 3, 12),
+  rating: rating,
+  notes: 'Loved the corner table by the window.',
+  attributes: attributes,
+);
 
 void main() {
   testWidgets('shows place name, order items, and notes', (tester) async {
@@ -122,47 +124,48 @@ void main() {
     expect(find.byIcon(Icons.star), findsNothing);
   });
 
-  testWidgets('deleting from the overflow menu calls deleteEntry and pops back', (
-    tester,
-  ) async {
-    final repo = _DetailFakeRepository(_buildEntry());
+  testWidgets(
+    'deleting from the overflow menu calls deleteEntry and pops back',
+    (tester) async {
+      final repo = _DetailFakeRepository(_buildEntry());
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [journalRepositoryProvider.overrideWithValue(repo)],
-        child: MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: FilledButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const EntryDetailScreen(entryId: 'e1'),
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [journalRepositoryProvider.overrideWithValue(repo)],
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EntryDetailScreen(entryId: 'e1'),
+                      ),
                     ),
+                    child: const Text('Open detail'),
                   ),
-                  child: const Text('Open detail'),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.text('Open detail'));
-    await tester.pumpAndSettle();
-    expect(find.byType(EntryDetailScreen), findsOneWidget);
+      await tester.tap(find.text('Open detail'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EntryDetailScreen), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete entry'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Delete'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete entry'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
 
-    expect(repo.deleteCalled, isTrue);
-    expect(find.text('Open detail'), findsOneWidget);
-    expect(find.byType(EntryDetailScreen), findsNothing);
-  });
+      expect(repo.deleteCalled, isTrue);
+      expect(find.text('Open detail'), findsOneWidget);
+      expect(find.byType(EntryDetailScreen), findsNothing);
+    },
+  );
 }

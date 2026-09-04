@@ -1,6 +1,6 @@
+import 'package:journally/features/sightings/data/sighting_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../data/mock_sightings_repository.dart';
 import '../../domain/sighting.dart';
 import '../../domain/sightings_repository.dart';
 
@@ -8,7 +8,7 @@ part 'sightings_providers.g.dart';
 
 @riverpod
 SightingsRepository sightingsRepository(Ref ref) {
-  return MockSightingsRepository();
+  return HttpSightingRepository();
 }
 
 @riverpod

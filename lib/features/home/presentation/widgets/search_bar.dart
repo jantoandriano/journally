@@ -33,10 +33,7 @@ class JournalSearchBar extends StatelessWidget {
               controller: controller,
               onChanged: onChanged,
               cursorColor: colors.primary,
-              style: GoogleFonts.manrope(
-                fontSize: 14,
-                color: colors.onSurface,
-              ),
+              style: GoogleFonts.manrope(fontSize: 14, color: colors.onSurface),
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
