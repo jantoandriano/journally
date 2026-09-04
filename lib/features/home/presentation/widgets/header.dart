@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Header extends StatelessWidget {
-  const Header({super.key, required this.count});
+  const Header({super.key, required this.subtitle});
 
-  final int count;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class Header extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '$count places visited',
+          subtitle,
           style: GoogleFonts.manrope(
             fontSize: 13,
             color: colors.onSurfaceVariant,

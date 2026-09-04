@@ -6,10 +6,12 @@ class JournalSearchBar extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onChanged,
+    required this.hintText,
   });
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final String hintText;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class JournalSearchBar extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: 'Search a place, dish, or area…',
+                hintText: hintText,
                 hintStyle: GoogleFonts.manrope(
                   fontSize: 14,
                   color: colors.outline,

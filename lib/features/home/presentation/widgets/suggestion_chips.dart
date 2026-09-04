@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SuggestionChips extends StatefulWidget {
-  const SuggestionChips({super.key});
+  const SuggestionChips({super.key, required this.labels});
 
-  static const _labels = [
-    'Near Kemang',
-    'Iced coffee spots',
-    'Visited this month',
-    'Good for laptop work',
-  ];
+  final List<String> labels;
 
   @override
   State<SuggestionChips> createState() => _SuggestionChipsState();
@@ -26,7 +21,7 @@ class _SuggestionChipsState extends State<SuggestionChips> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: SuggestionChips._labels.length,
+        itemCount: widget.labels.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final selected = _selectedIndex == index;
@@ -49,7 +44,7 @@ class _SuggestionChipsState extends State<SuggestionChips> {
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 alignment: Alignment.center,
                 child: Text(
-                  SuggestionChips._labels[index],
+                  widget.labels[index],
                   style: GoogleFonts.manrope(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
