@@ -95,3 +95,74 @@ final class SightingsProvider
 }
 
 String _$sightingsHash() => r'b2c3d4e5f6071829384756a1b2c3d4e5f6071829';
+
+@ProviderFor(sightingById)
+final sightingByIdProvider = SightingByIdFamily._();
+
+final class SightingByIdProvider
+    extends
+        $FunctionalProvider<AsyncValue<Sighting>, Sighting, FutureOr<Sighting>>
+    with $FutureModifier<Sighting>, $FutureProvider<Sighting> {
+  SightingByIdProvider._({
+    required SightingByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'sightingByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$sightingByIdHash();
+
+  @override
+  String toString() {
+    return r'sightingByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Sighting> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Sighting> create(Ref ref) {
+    final argument = this.argument as String;
+    return sightingById(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SightingByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sightingByIdHash() => r'c3d4e5f6071829384756a1b2c3d4e5f607182938';
+
+final class SightingByIdFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Sighting>, String> {
+  SightingByIdFamily._()
+    : super(
+        retry: null,
+        name: r'sightingByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  SightingByIdProvider call(String id) =>
+      SightingByIdProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'sightingByIdProvider';
+}

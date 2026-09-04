@@ -48,6 +48,21 @@ class HttpSightingRepository implements SightingsRepository {
         .toList();
   }
 
+  @override
+  Future<Sighting> fetchSightingById(String id) async {
+    final response = await _client
+        .get(Uri.parse('${ApiConfig.baseUrl}/sightings/$id'))
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw JournalApiException(
+        'GET /sightings/$id failed with status ${response.statusCode}',
+      );
+    }
+
+    return _toSightingEntry(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
   Sighting _toSightingEntry(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>?)?.cast<String>();

@@ -15,3 +15,8 @@ SightingsRepository sightingsRepository(Ref ref) {
 Future<List<Sighting>> sightings(Ref ref) {
   return ref.watch(sightingsRepositoryProvider).fetchSightings();
 }
+
+@riverpod
+Future<Sighting> sightingById(Ref ref, String id) {
+  return ref.watch(sightingsRepositoryProvider).fetchSightingById(id);
+}
