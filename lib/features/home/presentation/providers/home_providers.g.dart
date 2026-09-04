@@ -75,7 +75,7 @@ final class JournalEntriesProvider
         argument: null,
         retry: null,
         name: r'journalEntriesProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );

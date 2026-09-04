@@ -11,7 +11,12 @@ JournalRepository journalRepository(Ref ref) {
   return HttpJournalRepository();
 }
 
-@riverpod
+// Kept alive (not autoDispose) — splash reads this future once during
+// warm-up via `ref.read`, which doesn't itself keep an autoDispose provider
+// alive. Splash rebuilds constantly (ticking animations), and a disposal
+// between rebuilds would silently restart the fetch and leave the future
+// splash captured never settling.
+@Riverpod(keepAlive: true)
 Future<List<JournalEntry>> journalEntries(Ref ref) {
   return ref.watch(journalRepositoryProvider).fetchEntries();
 }

@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:journally/core/location_provider.dart';
 import 'package:journally/features/home/domain/journal_entry.dart';
 import 'package:journally/features/home/domain/journal_repository.dart';
 import 'package:journally/features/home/presentation/providers/home_providers.dart';
+import 'package:journally/features/sightings/domain/sighting.dart';
+import 'package:journally/features/sightings/domain/sightings_repository.dart';
+import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
 import 'package:journally/main.dart';
 
 class _FakeJournalRepository implements JournalRepository {
@@ -83,6 +87,26 @@ class _FakeJournalRepository implements JournalRepository {
   }
 }
 
+class _FakeSightingsRepository implements SightingsRepository {
+  @override
+  Future<List<Sighting>> fetchSightings() async => const [];
+
+  @override
+  Future<Sighting> fetchSightingById(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Sighting>> fetchNearbySightings({
+    required double lat,
+    required double lng,
+    double radiusKm = 5,
+    Species? species,
+  }) {
+    throw UnimplementedError();
+  }
+}
+
 void main() {
   testWidgets('Home screen loads and shows the place count', (
     WidgetTester tester,
@@ -91,6 +115,24 @@ void main() {
       ProviderScope(
         overrides: [
           journalRepositoryProvider.overrideWithValue(_FakeJournalRepository()),
+          // Avoids depending on real (even synthetically-faked-400) HTTP
+          // timing under flutter test — that resolves on a real IO turn,
+          // not a microtask, and the splash's fixed manual pump sequence
+          // below doesn't allocate slack for it.
+          sightingsRepositoryProvider.overrideWithValue(
+            _FakeSightingsRepository(),
+          ),
+          // Avoids depending on the real geolocator platform channel (which
+          // has no handler under flutter test and would otherwise leave the
+          // splash's warm-up future pending on a real-wall-clock timeout
+          // that pump(duration) never advances).
+          deviceLocationProvider.overrideWith(
+            (ref) async => const DeviceLocation(
+              lat: jakartaFallbackLat,
+              lng: jakartaFallbackLng,
+              isFallback: true,
+            ),
+          ),
         ],
         child: const JournallyApp(),
       ),

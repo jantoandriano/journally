@@ -27,7 +27,8 @@ const _fallback = DeviceLocation(
   isFallback: true,
 );
 
-@riverpod
+// Kept alive — see the matching note on journalEntries in home_providers.dart.
+@Riverpod(keepAlive: true)
 Future<DeviceLocation> deviceLocation(Ref ref) async {
   try {
     // Wraps the whole sequence, not just getCurrentPosition — an unanswered

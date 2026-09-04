@@ -26,7 +26,7 @@ final class DeviceLocationProvider
         argument: null,
         retry: null,
         name: r'deviceLocationProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );

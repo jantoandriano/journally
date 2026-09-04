@@ -74,7 +74,7 @@ final class SightingsProvider
         argument: null,
         retry: null,
         name: r'sightingsProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );

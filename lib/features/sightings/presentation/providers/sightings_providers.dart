@@ -17,7 +17,8 @@ SightingsRepository sightingsRepository(Ref ref) {
   return HttpSightingRepository();
 }
 
-@riverpod
+// Kept alive — see the matching note on journalEntries in home_providers.dart.
+@Riverpod(keepAlive: true)
 Future<List<Sighting>> sightings(Ref ref) {
   return ref.watch(sightingsRepositoryProvider).fetchSightings();
 }
