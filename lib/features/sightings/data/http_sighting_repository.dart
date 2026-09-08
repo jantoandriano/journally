@@ -163,6 +163,8 @@ class HttpSightingRepository implements SightingsRepository {
     final lat = (json['lat'] as num).toDouble();
     final lng = (json['lng'] as num).toDouble();
     final fedAtJson = json['fedAt'] as String?;
+    final createdAtJson = json['createdAt'] as String?;
+    final updatedAtJson = json['updatedAt'] as String?;
     final placeName = await _resolvePlaceName(lat, lng);
 
     return Sighting(
@@ -177,6 +179,8 @@ class HttpSightingRepository implements SightingsRepository {
       photoCount: photoCount,
       gradientColors: palette,
       photoUrls: photoUrls,
+      createdAt: createdAtJson != null ? DateTime.parse(createdAtJson) : null,
+      updatedAt: updatedAtJson != null ? DateTime.parse(updatedAtJson) : null,
       attributes:
           (json['attributes'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
