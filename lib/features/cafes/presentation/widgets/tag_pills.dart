@@ -11,10 +11,16 @@ const _tagOptions = [
 ];
 
 class TagPills extends StatelessWidget {
-  const TagPills({super.key, required this.selected, required this.onToggle});
+  const TagPills({
+    super.key,
+    required this.selected,
+    required this.onToggle,
+    this.options = _tagOptions,
+  });
 
   final Set<String> selected;
   final ValueChanged<String> onToggle;
+  final List<String> options;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +29,7 @@ class TagPills extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (final tag in _tagOptions)
+        for (final tag in options)
           GestureDetector(
             onTap: () => onToggle(tag),
             child: Container(

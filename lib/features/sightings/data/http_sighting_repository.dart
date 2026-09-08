@@ -6,6 +6,7 @@ import 'package:journally/core/network/api_exception.dart';
 import 'package:journally/features/sightings/domain/sighting.dart';
 import 'package:journally/features/sightings/domain/sightings_repository.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 class HttpSightingRepository implements SightingsRepository {
   HttpSightingRepository({http.Client? client})
@@ -75,6 +76,62 @@ class HttpSightingRepository implements SightingsRepository {
     return decoded
         .map((json) => _toSightingEntry(json as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Future<Sighting> createSighting({
+    required Species species,
+    required double lat,
+    required double lng,
+    String? notes,
+    List<String> attributes = const [],
+  }) async {
+    final response = await _client
+        .post(
+          Uri.parse('${ApiConfig.baseUrl}/sightings'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'species': species.name,
+            'lat': lat,
+            'lng': lng,
+            'attributes': attributes,
+            'notes': ?notes,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 201) {
+      throw ApiException(
+        'POST /sightings failed with status ${response.statusCode}',
+      );
+    }
+
+    return _toSightingEntry(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> uploadPhoto(String sightingId, XFile photo) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConfig.baseUrl}/sightings/$sightingId/photos'),
+    );
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'photo',
+        await photo.readAsBytes(),
+        filename: photo.name,
+      ),
+    );
+
+    final response = await _client
+        .send(request)
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 201) {
+      throw ApiException(
+        'POST /sightings/$sightingId/photos failed with status ${response.statusCode}',
+      );
+    }
   }
 
   @override
