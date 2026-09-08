@@ -4,12 +4,15 @@ const _monthNames = [
 ];
 
 /// e.g. "12 Mar 2026".
-String formatDate(DateTime date) =>
-    '${date.day} ${_monthNames[date.month - 1]} ${date.year}';
+String formatDate(DateTime date) {
+  final local = date.toLocal();
+  return '${local.day} ${_monthNames[local.month - 1]} ${local.year}';
+}
 
 /// e.g. "12 Mar, 18:40".
 String formatDateTime(DateTime date) {
-  final hh = date.hour.toString().padLeft(2, '0');
-  final mm = date.minute.toString().padLeft(2, '0');
-  return '${date.day} ${_monthNames[date.month - 1]}, $hh:$mm';
+  final local = date.toLocal();
+  final hh = local.hour.toString().padLeft(2, '0');
+  final mm = local.minute.toString().padLeft(2, '0');
+  return '${local.day} ${_monthNames[local.month - 1]}, $hh:$mm';
 }

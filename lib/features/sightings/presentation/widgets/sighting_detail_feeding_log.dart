@@ -1,31 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'package:journally/features/cafes/presentation/widgets/notes_field.dart';
+import 'package:journally/features/feeding_logs/domain/feeding_log_entry.dart';
+import 'package:journally/features/feeding_logs/presentation/providers/feeding_logs_providers.dart';
 
 import '../../domain/sighting.dart';
 import 'sighting_detail_format.dart';
 
-class _FeedEntry {
-  const _FeedEntry(this.what, this.time);
-
-  final String what;
-  final DateTime time;
-}
-
-/// Feeding log heading + entry cards. Entries are static placeholders — the
-/// Sighting model has no feeding log collection yet.
-class SightingDetailFeedingLog extends StatelessWidget {
+/// Feeding log heading + entry cards, backed by the feeding log API.
+class SightingDetailFeedingLog extends ConsumerWidget {
   const SightingDetailFeedingLog({super.key, required this.sighting});
 
   final Sighting sighting;
 
-  static final _entries = [
-    _FeedEntry('Wet food', DateTime(2026, 9, 7, 18, 40)),
-    _FeedEntry('Dry kibble', DateTime(2026, 9, 6, 8, 15)),
-  ];
+  Future<void> _logFeed(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController();
+    final note = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            sectionHeading(context, 'Log a feed'),
+            const SizedBox(height: 12),
+            NotesField(controller: controller),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text),
+                child: const Text('Save'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (note == null) return;
+
+    final repository = ref.read(feedingLogsRepositoryProvider);
+    await repository.createFeedingLogEntry(
+      sighting.id,
+      note: note.trim().isEmpty ? null : note.trim(),
+    );
+    ref.invalidate(feedingLogProvider(sighting.id));
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entriesAsync = ref.watch(feedingLogProvider(sighting.id));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -33,7 +67,7 @@ class SightingDetailFeedingLog extends StatelessWidget {
           children: [
             Expanded(child: sectionHeading(context, 'Feeding log')),
             TextButton(
-              onPressed: () {},
+              onPressed: () => _logFeed(context, ref),
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: Size.zero,
@@ -44,17 +78,34 @@ class SightingDetailFeedingLog extends StatelessWidget {
                 style: GoogleFonts.manrope(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: colors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        for (final entry in _entries) ...[
-          _FeedEntryCard(entry: entry),
-          if (entry != _entries.last) const SizedBox(height: 10),
-        ],
+        entriesAsync.when(
+          data: (entries) => entries.isEmpty
+              ? Text(
+                  'No feeds logged today.',
+                  style: GoogleFonts.manrope(
+                    fontSize: 12.5,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                )
+              : Column(
+                  children: [
+                    for (final entry in entries) ...[
+                      _FeedEntryCard(entry: entry),
+                      if (entry != entries.last) const SizedBox(height: 10),
+                    ],
+                  ],
+                ),
+          loading: () =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          error: (error, stackTrace) => Text('$error'),
+        ),
       ],
     );
   }
@@ -63,7 +114,7 @@ class SightingDetailFeedingLog extends StatelessWidget {
 class _FeedEntryCard extends StatelessWidget {
   const _FeedEntryCard({required this.entry});
 
-  final _FeedEntry entry;
+  final FeedingLogEntry entry;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +142,7 @@ class _FeedEntryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                entry.what,
+                entry.note?.isNotEmpty == true ? entry.note! : 'Fed',
                 style: GoogleFonts.manrope(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -100,11 +151,8 @@ class _FeedEntryCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                formatDateTime(entry.time),
-                style: GoogleFonts.manrope(
-                  fontSize: 11.5,
-                  color: colors.outline,
-                ),
+                formatDateTime(entry.createdAt),
+                style: GoogleFonts.manrope(fontSize: 11.5, color: colors.outline),
               ),
             ],
           ),
