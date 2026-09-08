@@ -4,20 +4,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:journally/core/location_provider.dart';
-import 'package:journally/features/home/domain/journal_entry.dart';
-import 'package:journally/features/home/domain/journal_repository.dart';
-import 'package:journally/features/home/presentation/providers/home_providers.dart';
+import 'package:journally/features/cafes/domain/cafe_entry.dart';
+import 'package:journally/features/cafes/domain/cafe_repository.dart';
+import 'package:journally/features/cafes/presentation/providers/cafe_providers.dart';
 import 'package:journally/features/sightings/domain/sighting.dart';
 import 'package:journally/features/sightings/domain/sightings_repository.dart';
 import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
 import 'package:journally/main.dart';
 
-class _FakeJournalRepository implements JournalRepository {
+class _FakeJournalRepository implements CafeRepository {
   @override
-  Future<List<JournalEntry>> fetchEntries() async {
+  Future<List<CafeEntry>> fetchCafes() async {
     return List.generate(
       6,
-      (i) => JournalEntry(
+      (i) => CafeEntry(
         id: '$i',
         placeName: 'Place $i',
         neighborhood: 'Neighborhood $i',
@@ -32,17 +32,17 @@ class _FakeJournalRepository implements JournalRepository {
   }
 
   @override
-  Future<JournalEntry> fetchEntryById(String id) {
+  Future<CafeEntry> fetchCafeById(String id) {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> deleteEntry(String id) {
+  Future<void> deleteCafe(String id) {
     throw UnimplementedError();
   }
 
   @override
-  Future<JournalEntry> createEntry({
+  Future<CafeEntry> createCafe({
     required String placeName,
     required String neighborhood,
     required String city,
@@ -59,7 +59,7 @@ class _FakeJournalRepository implements JournalRepository {
   }
 
   @override
-  Future<JournalEntry> updateEntry(
+  Future<CafeEntry> updateCafe(
     String id, {
     String? placeName,
     String? neighborhood,
@@ -78,7 +78,7 @@ class _FakeJournalRepository implements JournalRepository {
   }
 
   @override
-  Future<List<JournalEntry>> fetchNearbyEntries({
+  Future<List<CafeEntry>> fetchNearbyCafe({
     required double lat,
     required double lng,
     double radiusKm = 5,
@@ -114,7 +114,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          journalRepositoryProvider.overrideWithValue(_FakeJournalRepository()),
+          cafeRepositoryProvider.overrideWithValue(_FakeJournalRepository()),
           // Avoids depending on real (even synthetically-faked-400) HTTP
           // timing under flutter test — that resolves on a real IO turn,
           // not a microtask, and the splash's fixed manual pump sequence

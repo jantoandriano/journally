@@ -55,7 +55,7 @@ final class SightingsRepositoryProvider
 }
 
 String _$sightingsRepositoryHash() =>
-    r'a1b2c3d4e5f6071829384756a1b2c3d4e5f60718';
+    r'b46f091f59db32325112a448c17e3831075a5cd4';
 
 @ProviderFor(sightings)
 final sightingsProvider = SightingsProvider._();
@@ -94,7 +94,7 @@ final class SightingsProvider
   }
 }
 
-String _$sightingsHash() => r'b2c3d4e5f6071829384756a1b2c3d4e5f6071829';
+String _$sightingsHash() => r'63615d27b7700d19cfd6f2a970c259308db5cbc3';
 
 @ProviderFor(sightingById)
 final sightingByIdProvider = SightingByIdFamily._();
@@ -146,7 +146,7 @@ final class SightingByIdProvider
   }
 }
 
-String _$sightingByIdHash() => r'c3d4e5f6071829384756a1b2c3d4e5f607182938';
+String _$sightingByIdHash() => r'8891114741f976b9a695da9db996fc71137212f0';
 
 final class SightingByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Sighting>, String> {
@@ -221,7 +221,7 @@ final class NearbySightingsProvider
   }
 }
 
-String _$nearbySightingsHash() => r'e5f6071829384756a1b2c3d4e5f6071829384756';
+String _$nearbySightingsHash() => r'823e9eed93598ff28ff64c5e24416d8940259616';
 
 final class NearbySightingsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Sighting>>, Species?> {

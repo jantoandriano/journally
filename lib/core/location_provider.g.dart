@@ -46,4 +46,4 @@ final class DeviceLocationProvider
   }
 }
 
-String _$deviceLocationHash() => r'd4e5f6071829384756a1b2c3d4e5f6071829384';
+String _$deviceLocationHash() => r'5bae3282c2464d983833cbd09c61f52876c346bf';

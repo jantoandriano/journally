@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:journally/core/location_provider.dart';
 import 'package:journally/features/home/presentation/home_screen.dart';
-import 'package:journally/features/home/presentation/providers/home_providers.dart';
+import 'package:journally/features/cafes/presentation/providers/cafe_providers.dart';
 import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
 
 import 'splash_timing.dart';
@@ -49,7 +49,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _warmUp() async {
     await Future.wait([
-      _settle(ref.read(journalEntriesProvider.future)),
+      _settle(ref.read(cafeEntriesProvider.future)),
       _settle(ref.read(sightingsProvider.future)),
       _settle(ref.read(deviceLocationProvider.future)),
     ]);

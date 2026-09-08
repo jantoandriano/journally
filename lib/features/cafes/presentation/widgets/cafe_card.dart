@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:journally/features/sightings/presentation/sighting_detail_screen.dart';
 
 import '../../../../core/widgets/photo_count_badge.dart';
-import '../../domain/sighting.dart';
-import 'fed_pill.dart';
-import 'species_pill.dart';
+import '../../domain/cafe_entry.dart';
+import '../cafe_detail_screen.dart';
+import 'open_in_maps_button.dart';
 
-class SightingCard extends StatelessWidget {
-  const SightingCard({super.key, required this.sighting});
+class CafeCard extends StatelessWidget {
+  const CafeCard({super.key, required this.entry});
 
-  final Sighting sighting;
+  final CafeEntry entry;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final visibleItems = entry.orderItems.take(2).toList();
+    final extraCount = entry.orderItems.length - visibleItems.length;
 
     return Material(
       color: colors.surface,
@@ -23,10 +24,13 @@ class SightingCard extends StatelessWidget {
         side: BorderSide(color: colors.outlineVariant),
       ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        splashColor: colors.surfaceContainerHighest,
+        highlightColor: colors.surfaceContainerHighest,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => SightingDetailScreen(sightingId: sighting.id),
+            builder: (_) => CafeDetailScreen(entryId: entry.id),
           ),
         ),
         child: Padding(
@@ -44,27 +48,22 @@ class SightingCard extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: sighting.gradientColors,
+                            colors: entry.gradientColors,
                           ),
                         ),
                       ),
                     ),
                     Positioned(
                       top: 8,
-                      left: 8,
-                      child: SpeciesPill(animal: sighting.animal),
-                    ),
-                    Positioned(
-                      top: 8,
                       right: 8,
-                      child: PhotoCountBadge(photoCount: sighting.photoCount),
+                      child: PhotoCountBadge(photoCount: entry.photoCount),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 10),
               Text(
-                sighting.notes,
+                entry.placeName,
                 style: GoogleFonts.fraunces(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -74,7 +73,19 @@ class SightingCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
-              FedPill(wasFed: sighting.fed),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final item in visibleItems)
+                    _OrderTag(
+                      label: item.formattedPrice != null
+                          ? '${item.name} · ${item.formattedPrice}'
+                          : item.name,
+                    ),
+                  if (extraCount > 0) _OrderTag(label: '+$extraCount'),
+                ],
+              ),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -82,7 +93,7 @@ class SightingCard extends StatelessWidget {
                   const SizedBox(width: 3),
                   Expanded(
                     child: Text(
-                      sighting.placeName,
+                      '${entry.neighborhood}, ${entry.city}',
                       style: GoogleFonts.manrope(
                         fontSize: 11.5,
                         color: colors.outline,
@@ -91,11 +102,41 @@ class SightingCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (entry.lat != null && entry.lng != null)
+                    OpenInMapsButton(lat: entry.lat!, lng: entry.lng!),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _OrderTag extends StatelessWidget {
+  const _OrderTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.manrope(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: colors.onSurfaceVariant,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
