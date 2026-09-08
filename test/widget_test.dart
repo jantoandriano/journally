@@ -110,6 +110,22 @@ class _FakeSightingsRepository implements SightingsRepository {
   Future<void> deleteSightById(String id) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Sighting> createSighting({
+    required Species species,
+    required double lat,
+    required double lng,
+    String? notes,
+    List<String> attributes = const [],
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> uploadPhoto(String sightingId, XFile photo) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

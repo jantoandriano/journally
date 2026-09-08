@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:journally/features/cafes/domain/cafe_entry.dart';
+import 'package:journally/features/cafes/presentation/widgets/rating_chip.dart';
 
 /// Headline description + fed/not-fed status chip.
 class CafeDetailTitle extends StatelessWidget {
@@ -26,6 +27,7 @@ class CafeDetailTitle extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
+        if (entry.rating != null) RatingChip(rating: entry.rating!),
       ],
     );
   }
