@@ -3,16 +3,20 @@ import 'dart:convert';
 import 'package:journally/core/api_config.dart';
 import 'package:journally/core/gradient_palette.dart';
 import 'package:journally/core/network/api_exception.dart';
+import 'package:journally/features/place_search/data/nominatim_place_search_repository.dart';
+import 'package:journally/features/place_search/domain/place_search_repository.dart';
 import 'package:journally/features/sightings/domain/sighting.dart';
 import 'package:journally/features/sightings/domain/sightings_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 class HttpSightingRepository implements SightingsRepository {
-  HttpSightingRepository({http.Client? client})
-    : _client = client ?? http.Client();
+  HttpSightingRepository({http.Client? client, PlaceSearchRepository? placeSearch})
+    : _client = client ?? http.Client(),
+      _placeSearch = placeSearch ?? NominatimPlaceSearchRepository();
 
   final http.Client _client;
+  final PlaceSearchRepository _placeSearch;
 
   @override
   Future<List<Sighting>> fetchSightings() async {
@@ -27,9 +31,9 @@ class HttpSightingRepository implements SightingsRepository {
     }
 
     final decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded
-        .map((json) => _toSightingEntry(json as Map<String, dynamic>))
-        .toList();
+    return Future.wait(
+      decoded.map((json) => _toSightingEntry(json as Map<String, dynamic>)),
+    );
   }
 
   @override
@@ -44,7 +48,9 @@ class HttpSightingRepository implements SightingsRepository {
       );
     }
 
-    return _toSightingEntry(jsonDecode(response.body) as Map<String, dynamic>);
+    return await _toSightingEntry(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -73,9 +79,9 @@ class HttpSightingRepository implements SightingsRepository {
     }
 
     final decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded
-        .map((json) => _toSightingEntry(json as Map<String, dynamic>))
-        .toList();
+    return Future.wait(
+      decoded.map((json) => _toSightingEntry(json as Map<String, dynamic>)),
+    );
   }
 
   @override
@@ -106,7 +112,9 @@ class HttpSightingRepository implements SightingsRepository {
       );
     }
 
-    return _toSightingEntry(jsonDecode(response.body) as Map<String, dynamic>);
+    return await _toSightingEntry(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -147,7 +155,7 @@ class HttpSightingRepository implements SightingsRepository {
     }
   }
 
-  Sighting _toSightingEntry(Map<String, dynamic> json) {
+  Future<Sighting> _toSightingEntry(Map<String, dynamic> json) async {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>?)?.cast<String>();
     final palette = pickGradient(id);
@@ -155,12 +163,12 @@ class HttpSightingRepository implements SightingsRepository {
     final lat = (json['lat'] as num).toDouble();
     final lng = (json['lng'] as num).toDouble();
     final fedAtJson = json['fedAt'] as String?;
+    final placeName = await _resolvePlaceName(lat, lng);
 
     return Sighting(
       id: id,
       animal: Species.values.byName(json['species'] as String),
-      // API has no reverse-geocoded address yet, only coordinates.
-      placeName: '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
+      placeName: placeName,
       lat: lat,
       lng: lng,
       fed: json['fed'] as bool,
@@ -172,5 +180,15 @@ class HttpSightingRepository implements SightingsRepository {
       attributes:
           (json['attributes'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
+  }
+
+  Future<String> _resolvePlaceName(double lat, double lng) async {
+    try {
+      return await _placeSearch.reverseGeocode(lat: lat, lng: lng);
+    } catch (_) {
+      // Geocoding is best-effort — fall back to raw coordinates rather
+      // than failing the whole sighting fetch.
+      return '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:journally/core/location_provider.dart';
+import 'package:journally/features/place_search/presentation/providers/place_search_providers.dart';
 import 'package:journally/features/sightings/data/http_sighting_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,7 +15,9 @@ const nearMeRadiusKm = 5.0;
 
 @riverpod
 SightingsRepository sightingsRepository(Ref ref) {
-  return HttpSightingRepository();
+  return HttpSightingRepository(
+    placeSearch: ref.watch(placeSearchRepositoryProvider),
+  );
 }
 
 // Kept alive — see the matching note on journalEntries in home_providers.dart.

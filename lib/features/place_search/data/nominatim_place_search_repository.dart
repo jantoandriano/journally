@@ -38,6 +38,51 @@ class NominatimPlaceSearchRepository implements PlaceSearchRepository {
         .toList();
   }
 
+  @override
+  Future<String> reverseGeocode({
+    required double lat,
+    required double lng,
+  }) async {
+    final uri = Uri.https('nominatim.openstreetmap.org', '/reverse', {
+      'lat': '$lat',
+      'lon': '$lng',
+      'format': 'jsonv2',
+      'addressdetails': '1',
+    });
+
+    final response = await _client
+        .get(uri, headers: {'User-Agent': _userAgent})
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw PlaceSearchApiException(
+        'GET /reverse failed with status ${response.statusCode}',
+      );
+    }
+
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final address = json['address'] as Map<String, dynamic>? ?? const {};
+
+    final street =
+        address['road'] as String? ??
+        address['pedestrian'] as String? ??
+        address['neighbourhood'] as String? ??
+        '';
+    final area =
+        address['suburb'] as String? ??
+        address['city'] as String? ??
+        address['town'] as String? ??
+        address['village'] as String? ??
+        '';
+
+    if (street.isEmpty && area.isEmpty) {
+      return (json['display_name'] as String?) ?? '$lat, $lng';
+    }
+    if (street.isEmpty) return area;
+    if (area.isEmpty) return street;
+    return '$street, $area';
+  }
+
   PlaceSearchResult _toPlaceSearchResult(Map<String, dynamic> json) {
     final address = json['address'] as Map<String, dynamic>? ?? const {};
     final displayName = json['display_name'] as String? ?? '';
