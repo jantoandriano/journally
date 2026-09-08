@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/sightings_providers.dart';
-import 'widgets/sighting_detail_bottom_bar.dart';
 import 'widgets/sighting_detail_hero.dart';
 import 'widgets/sighting_detail_sheet.dart';
 
@@ -30,12 +29,6 @@ class SightingDetailScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-            ),
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: DetailBottomBar(),
             ),
           ],
         ),

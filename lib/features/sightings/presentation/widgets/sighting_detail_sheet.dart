@@ -8,7 +8,6 @@ import 'sighting_detail_feeding_log.dart';
 import 'sighting_detail_identity.dart';
 import 'sighting_detail_location_card.dart';
 import 'sighting_detail_notes.dart';
-import 'sighting_detail_photo_strip.dart';
 
 /// Content container overlapping the hero, assembling every section below
 /// the photo: identity, location, notes, feeding log, photos.
@@ -45,8 +44,6 @@ class SightingDetailSheet extends StatelessWidget {
               SightingDetailAiObservation(),
               SectionDivider(),
               SightingDetailFeedingLog(sighting: sight),
-              SectionDivider(),
-              SightingDetailPhotoStrip(sighting: sight),
             ],
           ),
         ),

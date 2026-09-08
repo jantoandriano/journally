@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/cafe_providers.dart';
 
-import 'widgets/bottom_action_bar.dart';
 import 'widgets/cafe_detail_sheet.dart';
 import 'widgets/cafe_detail_hero.dart';
 
@@ -33,12 +32,6 @@ class CafeDetailScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: BottomActionBar(entry: entry),
             ),
           ],
         ),

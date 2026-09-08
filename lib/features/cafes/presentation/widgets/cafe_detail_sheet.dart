@@ -3,7 +3,6 @@ import 'package:journally/core/widgets/section_divider.dart';
 import 'package:journally/features/cafes/presentation/widgets/cafe_ai_notes.dart';
 import 'package:journally/features/cafes/presentation/widgets/cafe_detail_meta.dart';
 import 'package:journally/features/cafes/presentation/widgets/cafe_detail_order_list.dart';
-import 'package:journally/features/cafes/presentation/widgets/cafe_detail_photo_strip.dart';
 import 'package:journally/features/cafes/presentation/widgets/cafe_detail_tags.dart';
 import 'package:journally/features/cafes/presentation/widgets/cafe_detail_title.dart';
 
@@ -38,8 +37,6 @@ class CafeDetailSheet extends StatelessWidget {
               CafeDetailOrderList(entry: entry),
               SectionDivider(),
               CafeAiNotes(notes: entry.notes),
-              SectionDivider(),
-              CafeDetailPhotoStrip(entry: entry),
             ],
           ),
         ),
