@@ -137,12 +137,12 @@ class HttpSightingRepository implements SightingsRepository {
   @override
   Future<void> deleteSightById(String id) async {
     final response = await _client
-        .delete(Uri.parse('${ApiConfig.baseUrl}/sighting/$id'))
+        .delete(Uri.parse('${ApiConfig.baseUrl}/sightings/$id'))
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode != 204) {
       throw ApiException(
-        'DELETE /sighting/$id failed with status ${response.statusCode}',
+        'DELETE /sightings/$id failed with status ${response.statusCode}',
       );
     }
   }
