@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:journally/core/widgets/button.dart';
 import 'package:journally/features/cafes/domain/cafe_entry.dart';
 import 'package:journally/features/cafes/presentation/providers/cafe_providers.dart';
 import 'package:journally/features/place_search/domain/place_search_result.dart';
 import 'package:journally/features/place_search/presentation/place_search_screen.dart';
 
 import 'widgets/ai_draft_row.dart';
-import 'widgets/back_button.dart';
 import 'widgets/notes_field.dart';
 import 'widgets/order_item_tile.dart';
 import 'widgets/photo_dropzone.dart';
@@ -186,7 +186,10 @@ class _CafeAddScreenState extends ConsumerState<CafeAddScreen> {
                 children: [
                   Row(
                     children: [
-                      AddEntryBackButton(onTap: () => Navigator.pop(context)),
+                      JournalyButton(
+                        icon: Icons.arrow_back,
+                        onTap: () => Navigator.pop(context),
+                      ),
                       const Spacer(),
                       Text(
                         'Draft saved',

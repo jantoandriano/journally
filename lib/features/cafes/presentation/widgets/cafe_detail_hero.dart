@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:journally/core/widgets/button.dart';
 
 import '../../domain/cafe_entry.dart';
 import '../providers/cafe_providers.dart';
 
-class HeroHeader extends StatelessWidget {
-  const HeroHeader({super.key, required this.entry});
+class CafeDetailHero extends StatelessWidget {
+  const CafeDetailHero({super.key, required this.entry});
 
   final CafeEntry entry;
 
@@ -29,7 +30,7 @@ class HeroHeader extends StatelessWidget {
           Positioned(
             top: 16,
             left: 16,
-            child: _HeroCircleButton(
+            child: JournalyButton(
               icon: Icons.arrow_back,
               onTap: () => Navigator.pop(context),
             ),
@@ -39,9 +40,9 @@ class HeroHeader extends StatelessWidget {
             right: 16,
             child: Row(
               children: [
-                const _HeroCircleButton(icon: Icons.bookmark_border),
+                const JournalyButton(icon: Icons.bookmark_border),
                 const SizedBox(width: 10),
-                _HeroCircleButton(
+                JournalyButton(
                   icon: Icons.more_vert,
                   onTap: () => _showOverflowMenu(context),
                 ),
@@ -52,9 +53,7 @@ class HeroHeader extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 16,
-            child: _PageDots(
-              count: entry.photoCount == 0 ? 1 : entry.photoCount,
-            ),
+            child: _Dots(count: entry.photoCount == 0 ? 1 : entry.photoCount),
           ),
         ],
       ),
@@ -113,32 +112,8 @@ class HeroHeader extends StatelessWidget {
   }
 }
 
-class _HeroCircleButton extends StatelessWidget {
-  const _HeroCircleButton({required this.icon, this.onTap});
-
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.42),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: Colors.white, size: 20),
-      ),
-    );
-  }
-}
-
-class _PageDots extends StatelessWidget {
-  const _PageDots({required this.count});
+class _Dots extends StatelessWidget {
+  const _Dots({required this.count});
 
   final int count;
 

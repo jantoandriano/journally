@@ -13,8 +13,8 @@ class _FeedEntry {
 
 /// Feeding log heading + entry cards. Entries are static placeholders — the
 /// Sighting model has no feeding log collection yet.
-class DetailFeedingLog extends StatelessWidget {
-  const DetailFeedingLog({super.key, required this.sighting});
+class SightingDetailFeedingLog extends StatelessWidget {
+  const SightingDetailFeedingLog({super.key, required this.sighting});
 
   final Sighting sighting;
 

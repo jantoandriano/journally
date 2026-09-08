@@ -77,6 +77,19 @@ class HttpSightingRepository implements SightingsRepository {
         .toList();
   }
 
+  @override
+  Future<void> deleteSightById(String id) async {
+    final response = await _client
+        .delete(Uri.parse('${ApiConfig.baseUrl}/sighting/$id'))
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 204) {
+      throw ApiException(
+        'DELETE /sighting/$id failed with status ${response.statusCode}',
+      );
+    }
+  }
+
   Sighting _toSightingEntry(Map<String, dynamic> json) {
     final id = json['id'] as String;
     final photoUrls = (json['photoUrls'] as List<dynamic>?)?.cast<String>();
@@ -99,6 +112,8 @@ class HttpSightingRepository implements SightingsRepository {
       photoCount: photoCount,
       gradientColors: palette,
       photoUrls: photoUrls,
+      attributes:
+          (json['attributes'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
   }
 }

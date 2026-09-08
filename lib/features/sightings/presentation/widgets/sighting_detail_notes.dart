@@ -6,8 +6,8 @@ import 'sighting_detail_format.dart';
 /// Static placeholder notes paragraph. The Sighting model only has one
 /// `notes` field, already used as the identity headline — real notes need a
 /// separate field.
-class DetailNotesBlock extends StatelessWidget {
-  const DetailNotesBlock({super.key});
+class SightingDetailNotes extends StatelessWidget {
+  const SightingDetailNotes({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +33,8 @@ class DetailNotesBlock extends StatelessWidget {
 }
 
 /// Static AI observation row. Copy is hardcoded for now.
-class DetailAiObservation extends StatelessWidget {
-  const DetailAiObservation({super.key});
+class SightingDetailAiObservation extends StatelessWidget {
+  const SightingDetailAiObservation({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -11,4 +11,6 @@ abstract class SightingsRepository {
     double radiusKm = 5,
     Species? species,
   });
+
+  Future<void> deleteSightById(String id);
 }

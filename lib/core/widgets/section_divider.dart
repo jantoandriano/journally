@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// 1px rule with 22px of breathing room above and below, used between every
 /// section of the sighting detail sheet.
-class DetailSectionDivider extends StatelessWidget {
-  const DetailSectionDivider({super.key});
+class SectionDivider extends StatelessWidget {
+  const SectionDivider({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class NotesBlock extends StatelessWidget {
-  const NotesBlock({super.key, required this.notes});
+class CafeAiNotes extends StatelessWidget {
+  const CafeAiNotes({super.key, required this.notes});
 
   final String notes;
 
@@ -38,7 +38,39 @@ class NotesBlock extends StatelessWidget {
             ),
           ),
         ),
+        _CafeAiRecap(),
       ],
+    );
+  }
+}
+
+class _CafeAiRecap extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome, size: 16, color: colors.onPrimaryContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'You tend to revisit cozy spots with great pastries.',
+              style: GoogleFonts.manrope(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: colors.onPrimaryContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

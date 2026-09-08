@@ -5,8 +5,8 @@ import '../../domain/sighting.dart';
 import 'sighting_detail_format.dart';
 
 /// "Photos" heading + horizontal strip of gradient placeholder squares.
-class DetailPhotoStrip extends StatelessWidget {
-  const DetailPhotoStrip({super.key, required this.sighting});
+class SightingDetailPhotoStrip extends StatelessWidget {
+  const SightingDetailPhotoStrip({super.key, required this.sighting});
 
   final Sighting sighting;
 

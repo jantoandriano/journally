@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/cafe_providers.dart';
 
 import 'widgets/bottom_action_bar.dart';
-import 'widgets/entry_sheet.dart';
-import 'widgets/hero_header.dart';
+import 'widgets/cafe_detail_sheet.dart';
+import 'widgets/cafe_detail_hero.dart';
 
 class CafeDetailScreen extends ConsumerWidget {
   const CafeDetailScreen({super.key, required this.entryId});
@@ -27,8 +27,8 @@ class CafeDetailScreen extends ConsumerWidget {
                 SliverToBoxAdapter(
                   child: Column(
                     children: [
-                      HeroHeader(entry: entry),
-                      EntrySheet(entry: entry),
+                      CafeDetailHero(entry: entry),
+                      CafeDetailSheet(entry: entry),
                     ],
                   ),
                 ),

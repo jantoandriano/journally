@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:journally/core/widgets/button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
 
 import '../../domain/sighting.dart';
 
 /// 420px hero photo area. Sits above [DetailSheet] as a plain [Column]
 /// child — the sheet's own [Transform.translate] creates the -28px overlap.
-class DetailHero extends StatelessWidget {
-  const DetailHero({super.key, required this.sighting});
+class SightingDetailHero extends StatelessWidget {
+  const SightingDetailHero({super.key, required this.sight});
 
-  final Sighting sighting;
+  final Sighting sight;
 
   static const height = 420.0;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height,
+      height: 420,
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,
@@ -25,14 +28,14 @@ class DetailHero extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: sighting.gradientColors,
+                colors: sight.gradientColors,
               ),
             ),
           ),
           Positioned(
             top: 16,
             left: 16,
-            child: _CircleButton(
+            child: JournalyButton(
               icon: Icons.arrow_back,
               onTap: () => Navigator.pop(context),
             ),
@@ -42,9 +45,12 @@ class DetailHero extends StatelessWidget {
             right: 16,
             child: Row(
               children: [
-                _CircleButton(icon: Icons.bookmark_border, onTap: () {}),
-                const SizedBox(width: 8),
-                _CircleButton(icon: Icons.more_vert, onTap: () {}),
+                const JournalyButton(icon: Icons.bookmark_border),
+                const SizedBox(width: 10),
+                JournalyButton(
+                  icon: Icons.more_vert,
+                  onTap: () => _showOverflowMenu(context),
+                ),
               ],
             ),
           ),
@@ -55,46 +61,72 @@ class DetailHero extends StatelessWidget {
             child: Center(
               child: SizedBox(
                 height: 38,
-                child: Center(child: _SpeciesPill(animal: sighting.animal)),
+                child: Center(child: _SpeciesPill(animal: sight.animal)),
               ),
             ),
           ),
           Positioned(
-            bottom: 16,
             left: 0,
             right: 0,
-            child: Center(
-              child: _PhotoDots(count: sighting.photoCount, activeIndex: 0),
-            ),
+            bottom: 16,
+            child: _Dots(count: sight.photoCount == 0 ? 1 : sight.photoCount),
           ),
         ],
       ),
     );
   }
-}
 
-class _CircleButton extends StatelessWidget {
-  const _CircleButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: colors.onSurface.withValues(alpha: 0.42),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(icon, size: 18, color: Colors.white),
+  void _showOverflowMenu(BuildContext context) {
+    final consumerContext = context;
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListTile(
+          leading: const Icon(Icons.delete_outline),
+          title: const Text('Delete sight'),
+          onTap: () {
+            Navigator.pop(sheetContext);
+            _confirmDelete(consumerContext);
+          },
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete this sight?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final container = ProviderScope.containerOf(context);
+    try {
+      await container
+          .read(sightingsRepositoryProvider)
+          .deleteSightById(sight.id);
+      container.invalidate(sightingsProvider);
+      if (context.mounted) Navigator.pop(context);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't delete — try again.")),
+        );
+      }
+    }
   }
 }
 
@@ -131,31 +163,38 @@ class _SpeciesPill extends StatelessWidget {
   }
 }
 
-class _PhotoDots extends StatelessWidget {
-  const _PhotoDots({required this.count, required this.activeIndex});
+class _Dots extends StatelessWidget {
+  const _Dots({required this.count});
 
   final int count;
-  final int activeIndex;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(count, (index) {
-        final isActive = index == activeIndex;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: isActive ? 18 : 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: isActive ? 1 : 0.5),
-              borderRadius: BorderRadius.circular(3),
-            ),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < count; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: i == 0
+                ? Container(
+                    width: 18,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  )
+                : Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
           ),
-        );
-      }),
+      ],
     );
   }
 }

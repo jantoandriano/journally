@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:journally/core/widgets/section_divider.dart';
+import 'package:journally/features/sightings/presentation/widgets/sighting_detail_meta_line.dart';
+import 'package:journally/features/sightings/presentation/widgets/sighting_detail_tags.dart';
 
 import '../../domain/sighting.dart';
 import 'sighting_detail_feeding_log.dart';
@@ -6,18 +9,18 @@ import 'sighting_detail_identity.dart';
 import 'sighting_detail_location_card.dart';
 import 'sighting_detail_notes.dart';
 import 'sighting_detail_photo_strip.dart';
-import 'sighting_detail_section_divider.dart';
 
 /// Content container overlapping the hero, assembling every section below
 /// the photo: identity, location, notes, feeding log, photos.
-class DetailSheet extends StatelessWidget {
-  const DetailSheet({super.key, required this.sighting});
+class SightingDetailSheet extends StatelessWidget {
+  const SightingDetailSheet({super.key, required this.sight});
 
-  final Sighting sighting;
+  final Sighting sight;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
     return Transform.translate(
       offset: const Offset(0, -28),
       child: ClipRRect(
@@ -32,21 +35,18 @@ class DetailSheet extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DetailIdentity(sighting: sighting),
-              const SizedBox(height: 10),
-              DetailMetaLine(sighting: sighting),
-              const SizedBox(height: 14),
-              const DetailTraitPills(),
-              const DetailSectionDivider(),
-              DetailLocationCard(sighting: sighting),
-              const DetailSectionDivider(),
-              const DetailNotesBlock(),
-              const SizedBox(height: 12),
-              const DetailAiObservation(),
-              const DetailSectionDivider(),
-              DetailFeedingLog(sighting: sighting),
-              const DetailSectionDivider(),
-              DetailPhotoStrip(sighting: sighting),
+              SightingDetailTitle(sighting: sight),
+              SightingDetailMeta(sighting: sight),
+              SightingDetailTraitTags(sighting: sight),
+              SectionDivider(),
+              SightingDetailLocationCard(sighting: sight),
+              SectionDivider(),
+              SightingDetailNotes(),
+              SightingDetailAiObservation(),
+              SectionDivider(),
+              SightingDetailFeedingLog(sighting: sight),
+              SectionDivider(),
+              SightingDetailPhotoStrip(sighting: sight),
             ],
           ),
         ),

@@ -5,8 +5,8 @@ import '../../domain/sighting.dart';
 import 'sighting_detail_format.dart';
 
 /// "Where I saw it" section: map placeholder + street/area + "Open map".
-class DetailLocationCard extends StatelessWidget {
-  const DetailLocationCard({super.key, required this.sighting});
+class SightingDetailLocationCard extends StatelessWidget {
+  const SightingDetailLocationCard({super.key, required this.sighting});
 
   final Sighting sighting;
 

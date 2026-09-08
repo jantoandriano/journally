@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../domain/cafe_entry.dart';
 
-class EntryOrderItemTile extends StatelessWidget {
-  const EntryOrderItemTile({super.key, required this.item});
+class CafeOrderItemTile extends StatelessWidget {
+  const CafeOrderItemTile({super.key, required this.item});
 
   final OrderItem item;
 

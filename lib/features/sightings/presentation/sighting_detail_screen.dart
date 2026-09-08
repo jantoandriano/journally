@@ -24,8 +24,8 @@ class SightingDetailScreen extends ConsumerWidget {
                 SliverToBoxAdapter(
                   child: Column(
                     children: [
-                      DetailHero(sighting: sighting),
-                      DetailSheet(sighting: sighting),
+                      SightingDetailHero(sight: sighting),
+                      SightingDetailSheet(sight: sighting),
                     ],
                   ),
                 ),

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../../domain/sighting.dart';
+import 'package:journally/features/cafes/domain/cafe_entry.dart';
 
 /// Headline description + fed/not-fed status chip.
-class SightingDetailTitle extends StatelessWidget {
-  const SightingDetailTitle({super.key, required this.sighting});
+class CafeDetailTitle extends StatelessWidget {
+  const CafeDetailTitle({super.key, required this.entry});
 
-  final Sighting sighting;
+  final CafeEntry entry;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +16,7 @@ class SightingDetailTitle extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            sighting.notes,
+            entry.placeName,
             style: GoogleFonts.fraunces(
               fontSize: 27,
               fontWeight: FontWeight.w700,

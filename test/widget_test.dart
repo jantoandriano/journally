@@ -105,6 +105,11 @@ class _FakeSightingsRepository implements SightingsRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> deleteSightById(String id) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

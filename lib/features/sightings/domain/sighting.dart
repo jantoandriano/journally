@@ -18,6 +18,7 @@ class Sighting {
     this.placeId,
     this.createdAt,
     this.updatedAt,
+    required this.attributes,
   });
 
   final String id;
@@ -34,4 +35,5 @@ class Sighting {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final int photoCount;
+  final List<String> attributes;
 }
