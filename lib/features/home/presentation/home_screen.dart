@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/domain/auth_state.dart';
+import '../../../core/auth/presentation/providers/auth_providers.dart';
 import '../../../core/widgets/home_tab_switch.dart';
+import '../../auth/presentation/login_screen.dart';
 import '../../cafes/presentation/cafe_add_screen.dart';
 import '../../cafes/presentation/cafe_feed_screen.dart';
 import '../../sightings/presentation/sighting_add_screen.dart';
@@ -30,8 +33,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      if (next is AuthLoggedOut) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: colors.surfaceContainerLow,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
+            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+          ),
+        ],
+      ),
       floatingActionButton: Container(
         width: 58,
         height: 58,

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/auth/domain/auth_state.dart';
 import '../../../core/auth/presentation/providers/auth_providers.dart';
+import '../../home/presentation/home_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -48,6 +50,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      if (next is AuthLoggedIn) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: colors.surfaceContainerLow,

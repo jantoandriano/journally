@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:journally/core/auth/domain/auth_state.dart';
+import 'package:journally/core/auth/presentation/providers/auth_providers.dart';
 import 'package:journally/core/location_provider.dart';
+import 'package:journally/features/auth/presentation/login_screen.dart';
 import 'package:journally/features/home/presentation/home_screen.dart';
 import 'package:journally/features/cafes/presentation/providers/cafe_providers.dart';
 import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
@@ -48,11 +53,29 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _warmUp() async {
-    await Future.wait([
-      _settle(ref.read(cafeEntriesProvider.future)),
-      _settle(ref.read(sightingsProvider.future)),
-      _settle(ref.read(deviceLocationProvider.future)),
-    ]);
+    await _waitForAuthResolved();
+
+    if (ref.read(authControllerProvider) is AuthLoggedIn) {
+      await Future.wait([
+        _settle(ref.read(cafeEntriesProvider.future)),
+        _settle(ref.read(sightingsProvider.future)),
+        _settle(ref.read(deviceLocationProvider.future)),
+      ]);
+    }
+  }
+
+  Future<void> _waitForAuthResolved() async {
+    if (ref.read(authControllerProvider) is! AuthLoading) return;
+
+    final completer = Completer<void>();
+    late final ProviderSubscription<AuthState> subscription;
+    subscription = ref.listenManual(authControllerProvider, (previous, next) {
+      if (next is! AuthLoading) {
+        subscription.close();
+        completer.complete();
+      }
+    });
+    await completer.future;
   }
 
   Future<void> _settle(Future<void> future) async {
@@ -66,11 +89,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void _handOff() {
     if (!mounted) return;
     setState(() => _receding = true);
+
+    final isLoggedIn = ref.read(authControllerProvider) is AuthLoggedIn;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: SplashTiming.routeFade,
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const HomeScreen(),
+            isLoggedIn ? const HomeScreen() : const LoginScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(opacity: animation, child: child),
       ),

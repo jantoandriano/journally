@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:journally/core/auth/data/token_storage.dart';
+import 'package:journally/core/auth/domain/auth_repository.dart';
+import 'package:journally/core/auth/domain/auth_user.dart';
+import 'package:journally/core/auth/presentation/providers/auth_providers.dart';
 import 'package:journally/core/location_provider.dart';
 import 'package:journally/features/cafes/domain/cafe_entry.dart';
 import 'package:journally/features/cafes/domain/cafe_repository.dart';
@@ -11,6 +16,10 @@ import 'package:journally/features/sightings/domain/sighting.dart';
 import 'package:journally/features/sightings/domain/sightings_repository.dart';
 import 'package:journally/features/sightings/presentation/providers/sightings_providers.dart';
 import 'package:journally/main.dart';
+
+class _MockTokenStorage extends Mock implements TokenStorage {}
+
+class _MockAuthRepository extends Mock implements AuthRepository {}
 
 class _FakeJournalRepository implements CafeRepository {
   @override
@@ -132,9 +141,31 @@ void main() {
   testWidgets('Home screen loads and shows the place count', (
     WidgetTester tester,
   ) async {
+    // The splash screen now gates on auth state (Task 26), which requires
+    // resolving authControllerProvider's silent-login check. The real
+    // TokenStorage is backed by FlutterSecureStorage's platform channel,
+    // which has no handler under flutter test and hangs indefinitely rather
+    // than erroring — so a stored session is faked here purely to let that
+    // resolve quickly to logged-in, matching this test's original intent of
+    // exercising the home screen with fake data repositories.
+    const testUser = AuthUser(id: 'test-user', email: 'test@example.com');
+    final mockTokenStorage = _MockTokenStorage();
+    when(
+      () => mockTokenStorage.readSession(),
+    ).thenAnswer((_) async => const StoredSession(refreshToken: 'refresh-1', user: testUser));
+    when(
+      () => mockTokenStorage.updateRefreshToken(any()),
+    ).thenAnswer((_) async {});
+    final mockAuthRepository = _MockAuthRepository();
+    when(() => mockAuthRepository.refresh(any())).thenAnswer(
+      (_) async => const RefreshResult(accessToken: 'access-1', refreshToken: 'refresh-2'),
+    );
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          tokenStorageProvider.overrideWith((ref) => mockTokenStorage),
+          authRepositoryProvider.overrideWith((ref) => mockAuthRepository),
           cafeRepositoryProvider.overrideWithValue(_FakeJournalRepository()),
           // Avoids depending on real (even synthetically-faked-400) HTTP
           // timing under flutter test — that resolves on a real IO turn,
