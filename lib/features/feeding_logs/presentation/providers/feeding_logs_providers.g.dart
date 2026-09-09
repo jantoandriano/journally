@@ -55,7 +55,7 @@ final class FeedingLogsRepositoryProvider
 }
 
 String _$feedingLogsRepositoryHash() =>
-    r'a0c9219e5c7b440564183c08a5e72f8ead9537f0';
+    r'994b2b82d7906bee4207e970a6e826c79b143ad5';
 
 @ProviderFor(feedingLog)
 final feedingLogProvider = FeedingLogFamily._();
