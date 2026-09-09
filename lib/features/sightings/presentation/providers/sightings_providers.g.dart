@@ -55,7 +55,7 @@ final class SightingsRepositoryProvider
 }
 
 String _$sightingsRepositoryHash() =>
-    r'b46f091f59db32325112a448c17e3831075a5cd4';
+    r'b548e9e7553fcbd99a597367c93a2a845762efb7';
 
 @ProviderFor(sightings)
 final sightingsProvider = SightingsProvider._();
