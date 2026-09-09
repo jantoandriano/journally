@@ -53,7 +53,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final colors = Theme.of(context).colorScheme;
 
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
-      if (next is AuthLoggedIn) {
+      // Guard against SignupScreen (pushed on top of this one, not a
+      // replace) also being subscribed: only the topmost route should act
+      // on the AuthLoggedIn transition, or both listeners would race to
+      // navigate.
+      if (next is AuthLoggedIn && (ModalRoute.of(context)?.isCurrent ?? false)) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
           (route) => false,
