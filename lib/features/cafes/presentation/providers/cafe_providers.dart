@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/network/api_client_providers.dart';
 import '../../data/http_cafe_repository.dart';
 import '../../domain/cafe_entry.dart';
 import '../../domain/cafe_repository.dart';
@@ -8,7 +9,7 @@ part 'cafe_providers.g.dart';
 
 @riverpod
 CafeRepository cafeRepository(Ref ref) {
-  return HttpCafeRepository();
+  return HttpCafeRepository(dio: ref.watch(apiClientProvider));
 }
 
 // Kept alive (not autoDispose) — splash reads this future once during

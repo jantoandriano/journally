@@ -1,62 +1,44 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../domain/cafe_entry.dart';
 import '../domain/cafe_repository.dart';
-import '../../../core/api_config.dart';
 import '../../../core/gradient_palette.dart';
 import '../../../core/network/api_exception.dart';
 
 class HttpCafeRepository implements CafeRepository {
-  HttpCafeRepository({http.Client? client}) : _client = client ?? http.Client();
+  HttpCafeRepository({required Dio dio}) : _dio = dio;
 
-  final http.Client _client;
+  final Dio _dio;
 
   @override
   Future<List<CafeEntry>> fetchCafes() async {
-    final response = await _client
-        .get(Uri.parse('${ApiConfig.baseUrl}/entries'))
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
-      throw ApiException(
-        'GET /entries failed with status ${response.statusCode}',
-      );
+    try {
+      final response = await _dio.get<List<dynamic>>('/entries');
+      return response.data!
+          .map((json) => _toCafeEntry(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException('GET /entries failed with status ${e.response?.statusCode}');
     }
-
-    final decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded
-        .map((json) => _toCafeEntry(json as Map<String, dynamic>))
-        .toList();
   }
 
   @override
   Future<CafeEntry> fetchCafeById(String id) async {
-    final response = await _client
-        .get(Uri.parse('${ApiConfig.baseUrl}/entries/$id'))
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
-      throw ApiException(
-        'GET /entries/$id failed with status ${response.statusCode}',
-      );
+    try {
+      final response = await _dio.get<Map<String, dynamic>>('/entries/$id');
+      return _toCafeEntry(response.data!);
+    } on DioException catch (e) {
+      throw ApiException('GET /entries/$id failed with status ${e.response?.statusCode}');
     }
-
-    return _toCafeEntry(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<void> deleteCafe(String id) async {
-    final response = await _client
-        .delete(Uri.parse('${ApiConfig.baseUrl}/entries/$id'))
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 204) {
-      throw ApiException(
-        'DELETE /entries/$id failed with status ${response.statusCode}',
-      );
+    try {
+      await _dio.delete('/entries/$id');
+    } on DioException catch (e) {
+      throw ApiException('DELETE /entries/$id failed with status ${e.response?.statusCode}');
     }
   }
 
@@ -74,33 +56,27 @@ class HttpCafeRepository implements CafeRepository {
     double? lng,
     String? placeId,
   }) async {
-    final response = await _client
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/entries'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'placeName': placeName,
-            'neighborhood': neighborhood,
-            'city': city,
-            'orderItems': orderItems.map((item) => item.toJson()).toList(),
-            'visitedAt': visitedAt.toIso8601String(),
-            'notes': notes,
-            'attributes': attributes,
-            'rating': ?rating,
-            'lat': ?lat,
-            'lng': ?lng,
-            'placeId': ?placeId,
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 201) {
-      throw ApiException(
-        'POST /entries failed with status ${response.statusCode}',
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/entries',
+        data: {
+          'placeName': placeName,
+          'neighborhood': neighborhood,
+          'city': city,
+          'orderItems': orderItems.map((item) => item.toJson()).toList(),
+          'visitedAt': visitedAt.toIso8601String(),
+          'notes': notes,
+          'attributes': attributes,
+          'rating': ?rating,
+          'lat': ?lat,
+          'lng': ?lng,
+          'placeId': ?placeId,
+        },
       );
+      return _toCafeEntry(response.data!);
+    } on DioException catch (e) {
+      throw ApiException('POST /entries failed with status ${e.response?.statusCode}');
     }
-
-    return _toCafeEntry(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
@@ -114,53 +90,36 @@ class HttpCafeRepository implements CafeRepository {
     double? lng,
     String? placeId,
   }) async {
-    final response = await _client
-        .patch(
-          Uri.parse('${ApiConfig.baseUrl}/entries/$id'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'placeName': ?placeName,
-            'neighborhood': ?neighborhood,
-            'city': ?city,
-            if (orderItems != null)
-              'orderItems': orderItems.map((item) => item.toJson()).toList(),
-            'lat': ?lat,
-            'lng': ?lng,
-            'placeId': ?placeId,
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
-      throw ApiException(
-        'PATCH /entries/$id failed with status ${response.statusCode}',
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        '/entries/$id',
+        data: {
+          'placeName': ?placeName,
+          'neighborhood': ?neighborhood,
+          'city': ?city,
+          if (orderItems != null)
+            'orderItems': orderItems.map((item) => item.toJson()).toList(),
+          'lat': ?lat,
+          'lng': ?lng,
+          'placeId': ?placeId,
+        },
       );
+      return _toCafeEntry(response.data!);
+    } on DioException catch (e) {
+      throw ApiException('PATCH /entries/$id failed with status ${e.response?.statusCode}');
     }
-
-    return _toCafeEntry(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   @override
   Future<void> uploadPhoto(String entryId, XFile photo) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConfig.baseUrl}/entries/$entryId/photos'),
-    );
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        'photo',
-        await photo.readAsBytes(),
-        filename: photo.name,
-      ),
-    );
-
-    final response = await _client
-        .send(request)
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 201) {
+    try {
+      final formData = FormData.fromMap({
+        'photo': await MultipartFile.fromBytes(await photo.readAsBytes(), filename: photo.name),
+      });
+      await _dio.post('/entries/$entryId/photos', data: formData);
+    } on DioException catch (e) {
       throw ApiException(
-        'POST /entries/$entryId/photos failed with status ${response.statusCode}',
+        'POST /entries/$entryId/photos failed with status ${e.response?.statusCode}',
       );
     }
   }
@@ -171,23 +130,17 @@ class HttpCafeRepository implements CafeRepository {
     required double lng,
     double radiusKm = 5,
   }) async {
-    final uri = Uri.parse('${ApiConfig.baseUrl}/entries/nearby').replace(
-      queryParameters: {'lat': '$lat', 'lng': '$lng', 'radiusKm': '$radiusKm'},
-    );
-    final response = await _client
-        .get(uri)
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
-      throw ApiException(
-        'GET /entries/nearby failed with status ${response.statusCode}',
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/entries/nearby',
+        queryParameters: {'lat': lat, 'lng': lng, 'radiusKm': radiusKm},
       );
+      return response.data!
+          .map((json) => _toCafeEntry(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException('GET /entries/nearby failed with status ${e.response?.statusCode}');
     }
-
-    final decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded
-        .map((json) => _toCafeEntry(json as Map<String, dynamic>))
-        .toList();
   }
 
   CafeEntry _toCafeEntry(Map<String, dynamic> json) {
@@ -209,8 +162,7 @@ class HttpCafeRepository implements CafeRepository {
       visitedAt: DateTime.parse(json['visitedAt'] as String),
       rating: (json['rating'] as num?)?.toDouble(),
       notes: json['notes'] as String? ?? '',
-      attributes:
-          (json['attributes'] as List<dynamic>?)?.cast<String>() ?? const [],
+      attributes: (json['attributes'] as List<dynamic>?)?.cast<String>() ?? const [],
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
       placeId: json['placeId'] as String?,

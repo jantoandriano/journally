@@ -48,7 +48,7 @@ final class CafeRepositoryProvider
   }
 }
 
-String _$cafeRepositoryHash() => r'8af81d6db944cf8403552f819123bf59a9a59b11';
+String _$cafeRepositoryHash() => r'499b684132e308253b8b1c12012957030f911cf3';
 
 @ProviderFor(cafeEntries)
 final cafeEntriesProvider = CafeEntriesProvider._();
