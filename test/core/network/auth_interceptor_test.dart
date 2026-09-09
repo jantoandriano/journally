@@ -112,4 +112,85 @@ void main() {
     await expectLater(dio.get('/entries'), throwsA(isA<DioException>()));
     expect(refreshFailedCalls, 1);
   });
+
+  test('does not attempt refresh for a 401 on an /auth/ endpoint', () async {
+    final dio = Dio();
+    var refreshCalls = 0;
+    dio.httpClientAdapter = FakeHttpClientAdapter(
+      (_) => (statusCode: 401, data: {'error': 'invalid credentials'}),
+    );
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio: dio,
+        getAccessToken: () async => 'token',
+        onRefresh: () async {
+          refreshCalls++;
+          return 'new-token';
+        },
+        onRefreshFailed: () async {},
+      ),
+    );
+
+    await expectLater(dio.post('/auth/login'), throwsA(isA<DioException>()));
+    expect(refreshCalls, 0);
+  });
+
+  test('does not attempt refresh for a non-401 error', () async {
+    final dio = Dio();
+    var refreshCalls = 0;
+    dio.httpClientAdapter = FakeHttpClientAdapter(
+      (_) => (statusCode: 500, data: {'error': 'server error'}),
+    );
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio: dio,
+        getAccessToken: () async => 'token',
+        onRefresh: () async {
+          refreshCalls++;
+          return 'new-token';
+        },
+        onRefreshFailed: () async {},
+      ),
+    );
+
+    await expectLater(dio.get('/entries'), throwsA(isA<DioException>()));
+    expect(refreshCalls, 0);
+  });
+
+  test('refresh future resets so a later 401 triggers a fresh refresh', () async {
+    final dio = Dio();
+    var refreshCalls = 0;
+    String currentToken = 'expired-token-1';
+
+    dio.httpClientAdapter = FakeHttpClientAdapter((options) {
+      final authHeader = options.headers['Authorization'];
+      if (authHeader == 'Bearer expired-token-1' || authHeader == 'Bearer expired-token-2') {
+        return (statusCode: 401, data: {'error': 'expired'});
+      }
+      return (statusCode: 200, data: {'ok': true});
+    });
+
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio: dio,
+        getAccessToken: () async => currentToken,
+        onRefresh: () async {
+          refreshCalls++;
+          currentToken = 'fresh-token-$refreshCalls';
+          return currentToken;
+        },
+        onRefreshFailed: () async => fail('should not be called'),
+      ),
+    );
+
+    final firstRes = await dio.get('/entries');
+    expect(firstRes.statusCode, 200);
+    expect(refreshCalls, 1);
+
+    // Simulate the newly-refreshed token later expiring too, independently.
+    currentToken = 'expired-token-2';
+    final secondRes = await dio.get('/sightings');
+    expect(secondRes.statusCode, 200);
+    expect(refreshCalls, 2);
+  });
 }

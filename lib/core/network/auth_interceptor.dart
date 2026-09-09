@@ -32,15 +32,22 @@ class AuthInterceptor extends Interceptor {
       return;
     }
 
+    String newToken;
     try {
-      final newToken = await (_refreshFuture ??= _refresh());
+      newToken = await (_refreshFuture ??= _refresh());
+    } catch (_) {
+      await onRefreshFailed();
+      handler.next(err);
+      return;
+    }
+
+    try {
       final retryOptions = err.requestOptions
         ..headers['Authorization'] = 'Bearer $newToken';
       final response = await _dio.fetch(retryOptions);
       handler.resolve(response);
-    } catch (_) {
-      await onRefreshFailed();
-      handler.next(err);
+    } catch (retryError) {
+      handler.next(retryError is DioException ? retryError : err);
     }
   }
 
