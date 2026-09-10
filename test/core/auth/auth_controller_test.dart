@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:journally/core/auth/data/token_storage.dart';
@@ -189,7 +191,8 @@ void main() {
       (_) async => const StoredSession(refreshToken: 'old-refresh', user: user),
     );
     when(() => mockRepo.refresh('old-refresh')).thenAnswer(
-      (_) async => throw ApiException('POST /auth/refresh failed with status 401'),
+      (_) async =>
+          throw ApiException('POST /auth/refresh failed with status 401', statusCode: 401),
     );
     when(() => mockStorage.clear()).thenAnswer((_) async {});
 
@@ -201,6 +204,32 @@ void main() {
     // ignore: unnecessary_statements
     controller;
   });
+
+  // I1 (transient-server contrast case): a non-401 ApiException (5xx, 429,
+  // ...) during the cold-start refresh is a transient server problem, not
+  // a rejection of the refresh token — it must be treated the same as a
+  // network error: don't clear the stored session.
+  test(
+    'a transient server error (non-401 ApiException) during silent-login refresh leaves the '
+    'stored session intact',
+    () async {
+      when(() => mockStorage.readSession()).thenAnswer(
+        (_) async => const StoredSession(refreshToken: 'old-refresh', user: user),
+      );
+      when(() => mockRepo.refresh('old-refresh')).thenAnswer(
+        (_) async =>
+            throw ApiException('POST /auth/refresh failed with status 500', statusCode: 500),
+      );
+
+      final controller = container.read(authControllerProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(authControllerProvider), isA<AuthLoggedOut>());
+      verifyNever(() => mockStorage.clear());
+      // ignore: unnecessary_statements
+      controller;
+    },
+  );
 
   // I3: logout() and an in-flight refresh share no mutual exclusion of
   // their own. If a request is in flight (triggering a refresh) when the
@@ -257,6 +286,129 @@ void main() {
       // persisted.
       expect(container.read(authControllerProvider), isA<AuthLoggedOut>());
       verifyNever(() => mockStorage.updateRefreshToken('refresh-late'));
+    },
+  );
+
+  // Regression test for the epoch race: logout()/forceLogout() nulling
+  // `_refreshFuture` directly (I3, above) isn't enough on its own. A
+  // refresh already in flight *before* the logout doesn't go through that
+  // null — it's still running, and its `finally` block used to
+  // unconditionally clear `_refreshFuture` on completion, regardless of
+  // what had happened in the meantime. If a different user had since
+  // logged in and started their *own* refresh, the stale refresh's
+  // completion would wipe out that new refresh's in-flight guard,
+  // allowing a third caller to start a second, unguarded concurrent
+  // `/auth/refresh` call — exactly the bug this whole mechanism exists to
+  // prevent. Worse, the stale refresh would also persist user A's rotated
+  // token and state over user B's. `_authEpoch` fixes both: the stale
+  // refresh's `finally` no longer touches `_refreshFuture` once the epoch
+  // has moved on, and it no longer persists its result either.
+  test(
+    'a stale refresh completing after a logout+relogin as a different user does not clobber '
+    "the new user's in-flight refresh or session (epoch race)",
+    () async {
+      const userA = AuthUser(id: 'uA', email: 'a@example.com');
+      const userB = AuthUser(id: 'uB', email: 'b@example.com');
+
+      // Storage is modeled as a real mutable store (rather than a fixed
+      // stub) so it reflects whatever was most recently written, exactly
+      // like the real TokenStorage would — this lets us assert on its
+      // final contents instead of just verifying call arguments.
+      StoredSession? storedSession;
+      when(() => mockStorage.readSession()).thenAnswer((_) async => storedSession);
+      when(
+        () => mockStorage.saveSession(
+          refreshToken: any(named: 'refreshToken'),
+          user: any(named: 'user'),
+        ),
+      ).thenAnswer((invocation) async {
+        storedSession = StoredSession(
+          refreshToken: invocation.namedArguments[#refreshToken] as String,
+          user: invocation.namedArguments[#user] as AuthUser,
+        );
+      });
+      when(() => mockStorage.updateRefreshToken(any())).thenAnswer((invocation) async {
+        final token = invocation.positionalArguments[0] as String;
+        storedSession = StoredSession(refreshToken: token, user: storedSession!.user);
+      });
+      when(() => mockStorage.clear()).thenAnswer((_) async {
+        storedSession = null;
+      });
+      when(() => mockRepo.logout(any())).thenAnswer((_) async {});
+
+      final notifier = container.read(authControllerProvider.notifier);
+      await Future<void>.delayed(Duration.zero); // let build()'s silent login settle (no session)
+
+      // User A logs in.
+      when(
+        () => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')),
+      ).thenAnswer(
+        (_) async =>
+            const AuthResult(user: userA, accessToken: 'access-A0', refreshToken: 'refresh-A'),
+      );
+      await notifier.login(email: 'a@example.com', password: 'pwA');
+      expect((container.read(authControllerProvider) as AuthLoggedIn).user.id, 'uA');
+
+      // Refresh A starts and hangs mid-flight on a completer we control —
+      // simulates a slow `/auth/refresh` round trip.
+      final refreshACompleter = Completer<RefreshResult>();
+      when(() => mockRepo.refresh('refresh-A')).thenAnswer((_) => refreshACompleter.future);
+      final refreshAFuture = notifier.refreshAccessToken();
+      await Future<void>.delayed(Duration.zero); // let it reach the completer and suspend there
+
+      // The user logs out while refresh A is still in flight.
+      await notifier.logout();
+      expect(container.read(authControllerProvider), isA<AuthLoggedOut>());
+
+      // ...then logs in again, as a different user B.
+      when(
+        () => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')),
+      ).thenAnswer(
+        (_) async =>
+            const AuthResult(user: userB, accessToken: 'access-B0', refreshToken: 'refresh-B'),
+      );
+      await notifier.login(email: 'b@example.com', password: 'pwB');
+      expect((container.read(authControllerProvider) as AuthLoggedIn).user.id, 'uB');
+
+      // A 401 for user B starts refresh B, which also hangs mid-flight.
+      final refreshBCompleter = Completer<RefreshResult>();
+      when(() => mockRepo.refresh('refresh-B')).thenAnswer((_) => refreshBCompleter.future);
+      final refreshBFuture = notifier.refreshAccessToken();
+      await Future<void>.delayed(Duration.zero);
+
+      // Now refresh A's underlying network call finally resolves — a
+      // stale, late response for a session that no longer exists.
+      refreshACompleter.complete(
+        const RefreshResult(accessToken: 'access-A-stale', refreshToken: 'refresh-A-rotated'),
+      );
+      final tokenFromA = await refreshAFuture;
+      // Whatever request refresh A was originally serving still gets a
+      // token back so it can retry...
+      expect(tokenFromA, 'access-A-stale');
+
+      // ...but it must not have persisted user A's rotated token over
+      // user B's, or flipped state back to a mixed-identity mess.
+      expect(storedSession?.refreshToken, isNot('refresh-A-rotated'));
+      expect((container.read(authControllerProvider) as AuthLoggedIn).user.id, 'uB');
+
+      // And critically, it must not have clobbered refresh B's in-flight
+      // guard: a third caller arriving now should join B's still-pending
+      // future rather than starting an unguarded second concurrent
+      // refresh.
+      final thirdCallerFuture = notifier.refreshAccessToken();
+      expect(identical(thirdCallerFuture, refreshBFuture), isTrue);
+
+      // Finally, let refresh B resolve and confirm it (and only it) is
+      // the one that gets persisted.
+      refreshBCompleter.complete(
+        const RefreshResult(accessToken: 'access-B-fresh', refreshToken: 'refresh-B-rotated'),
+      );
+      final tokenFromB = await refreshBFuture;
+      expect(tokenFromB, 'access-B-fresh');
+      final finalState = container.read(authControllerProvider) as AuthLoggedIn;
+      expect(finalState.user.id, 'uB');
+      expect(finalState.accessToken, 'access-B-fresh');
+      expect(storedSession?.refreshToken, 'refresh-B-rotated');
     },
   );
 }

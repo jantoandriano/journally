@@ -29,6 +29,13 @@ class AuthController extends _$AuthController {
   // ever in flight at a time, regardless of who triggered it first.
   Future<String>? _refreshFuture;
 
+  // Bumped by every event that starts a new "session" — logout(),
+  // forceLogout(), and _authenticate() (signup/login). A refresh captures
+  // the epoch at the moment it starts; if the epoch has moved on by the
+  // time it completes, a logout/login happened while it was in flight and
+  // its result is stale — see _refresh() below.
+  int _authEpoch = 0;
+
   @override
   AuthState build() {
     _trySilentLogin();
@@ -49,20 +56,21 @@ class AuthController extends _$AuthController {
       // unguarded `/auth/refresh` request.
       await refreshAccessToken();
     } catch (e) {
-      if (e is NetworkException) {
-        // Couldn't verify the session because of a network problem, not
-        // because the refresh token was rejected. Per spec: don't log out
+      if (e is ApiException && e.statusCode == 401) {
+        // A genuine rejection of the refresh token itself
+        // (invalid/revoked/reused) — treat as a definitive logout and
+        // clear the now-useless stored session.
+        await storage.clear();
+        state = const AuthLoggedOut();
+      } else {
+        // Couldn't verify the session because of a network problem, a
+        // transient server error (5xx, 429, ...), or anything else that
+        // isn't a confirmed 401 rejection. Per spec: don't log out
         // destructively — leave the refresh token in storage so the next
         // attempt (next cold start, or a manual login) can still use it.
         // We still have to leave AuthLoading — the least invasive option
         // given the existing AuthState shape is to surface this as
         // logged-out (so the UI doesn't hang) without clearing storage.
-        state = const AuthLoggedOut();
-      } else {
-        // A real rejection (invalid/revoked/reused token) or anything
-        // else unexpected — treat as a definitive logout and clear the
-        // now-useless stored session.
-        await storage.clear();
         state = const AuthLoggedOut();
       }
     }
@@ -77,6 +85,11 @@ class AuthController extends _$AuthController {
   );
 
   Future<void> _authenticate(Future<AuthResult> Function() action) async {
+    // A successful signup/login starts a new session, distinct from
+    // whatever session (if any) preceded it — bump the epoch so any
+    // refresh still in flight from the old session is recognized as stale
+    // when it eventually completes. See _refresh() for how this is used.
+    _authEpoch++;
     state = const AuthLoading();
     try {
       final result = await action();
@@ -95,19 +108,34 @@ class AuthController extends _$AuthController {
   /// only one `/auth/refresh` request is ever in flight at a time. Rotates
   /// the stored refresh token and returns the new access token, or throws
   /// if the refresh token itself is no longer valid — the interceptor
-  /// treats an [ApiException] (a real rejection) as a signal to force a
-  /// logout, but not a [NetworkException].
+  /// treats an [ApiException] with `statusCode == 401` (a genuine
+  /// rejection) as a signal to force a logout, but not a
+  /// [NetworkException] or an [ApiException] with any other status code
+  /// (a transient server problem).
   Future<String> refreshAccessToken() => _refreshFuture ??= _refresh();
 
   Future<String> _refresh() async {
+    // Captured before any await — this is the epoch "as of" the moment
+    // this refresh started. Compared against the live _authEpoch both
+    // below (to decide whether to persist the result) and in `finally`
+    // (to decide whether this refresh still owns `_refreshFuture`).
+    final epoch = _authEpoch;
     try {
-      return await _doRefresh();
+      return await _doRefresh(epoch);
     } finally {
-      _refreshFuture = null;
+      // logout()/forceLogout() null `_refreshFuture` directly, and
+      // _authenticate() (a fresh login) may already have started its own
+      // refresh which owns `_refreshFuture` now. Only clear it here if no
+      // such event happened while this refresh was in flight — otherwise
+      // this stale refresh would clobber a newer, still-in-flight one's
+      // single-flight guard (see _authEpoch's doc comment).
+      if (epoch == _authEpoch) {
+        _refreshFuture = null;
+      }
     }
   }
 
-  Future<String> _doRefresh() async {
+  Future<String> _doRefresh(int epoch) async {
     final storage = ref.read(tokenStorageProvider);
     final session = await storage.readSession();
     if (session == null) {
@@ -115,13 +143,15 @@ class AuthController extends _$AuthController {
     }
     final result = await ref.read(authRepositoryProvider).refresh(session.refreshToken);
 
-    // A logout can complete while this refresh is in flight (they share
-    // no mutual exclusion of their own). If that happened, don't
-    // resurrect the session: skip persisting the rotated refresh token
-    // and skip flipping state back to logged in. Still return the fresh
-    // access token so the interceptor can satisfy the specific request
-    // it's retrying — it just won't be remembered anywhere.
-    if (state is AuthLoggedOut) {
+    // A logout, or a login as a different user, can complete while this
+    // refresh is in flight (they share no mutual exclusion of their own).
+    // If that happened, the epoch will have moved on since this refresh
+    // started — don't resurrect the old session or clobber the new one:
+    // skip persisting the rotated refresh token and skip flipping state.
+    // Still return the fresh access token so the interceptor can satisfy
+    // the specific request it's retrying — it just won't be remembered
+    // anywhere.
+    if (epoch != _authEpoch) {
       return result.accessToken;
     }
 
@@ -140,6 +170,12 @@ class AuthController extends _$AuthController {
     // logged in after this logout, which would silently resurrect the
     // session and orphan an unrevoked refresh token on the device.
     _refreshFuture = null;
+    // This is now a different session than whatever preceded it — see
+    // _authEpoch's doc comment. Bumping it (in addition to nulling
+    // `_refreshFuture` above) ensures a refresh that was already in
+    // flight before this logout, and so isn't covered by the null above,
+    // is still recognized as stale when it completes later.
+    _authEpoch++;
   }
 
   Future<void> logout() async {
@@ -151,7 +187,10 @@ class AuthController extends _$AuthController {
     await storage.clear();
     state = const AuthLoggedOut();
     // See forceLogout() — guards against a concurrent in-flight refresh
-    // undoing this logout.
+    // undoing this logout, both immediately (nulling `_refreshFuture`) and
+    // for one that was already in flight before this call started
+    // (bumping `_authEpoch`).
     _refreshFuture = null;
+    _authEpoch++;
   }
 }
