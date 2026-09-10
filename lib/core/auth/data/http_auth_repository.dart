@@ -42,6 +42,14 @@ class HttpAuthRepository implements AuthRepository {
         refreshToken: data['refreshToken'] as String,
       );
     } on DioException catch (e) {
+      // No response at all means the request never reached the server (or
+      // never got an answer) — a network-level problem, not a rejection of
+      // the refresh token. Callers need to tell the two apart: a dead
+      // connection shouldn't log the user out and burn their refresh
+      // token, but a definitive 401 from the server should.
+      if (e.response == null) {
+        throw NetworkException('POST /auth/refresh failed: ${e.message}');
+      }
       throw ApiException('POST /auth/refresh failed with status ${e.response?.statusCode}');
     }
   }
