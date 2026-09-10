@@ -6,7 +6,16 @@ import '../domain/auth_repository.dart';
 import '../domain/auth_user.dart';
 
 class HttpAuthRepository implements AuthRepository {
-  HttpAuthRepository({Dio? dio}) : _dio = dio ?? Dio(BaseOptions(baseUrl: ApiConfig.baseUrl));
+  HttpAuthRepository({Dio? dio})
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: ApiConfig.baseUrl,
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+            ),
+          );
 
   final Dio _dio;
 

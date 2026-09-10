@@ -69,13 +69,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final completer = Completer<void>();
     late final ProviderSubscription<AuthState> subscription;
+    var settled = false;
+    void settle() {
+      if (settled) return;
+      settled = true;
+      subscription.close();
+      if (!completer.isCompleted) completer.complete();
+    }
+
     subscription = ref.listenManual(authControllerProvider, (previous, next) {
-      if (next is! AuthLoading) {
-        subscription.close();
-        completer.complete();
-      }
+      if (next is! AuthLoading) settle();
     });
-    await completer.future;
+
+    // Auth resolution can hang forever if the network call it depends on
+    // never returns (a dead/very slow connection). Without a timeout the
+    // splash spinner never resolves and there's no way out short of
+    // force-quitting. Fifteen seconds after that, give up waiting and
+    // proceed as if it failed — the user lands on LoginScreen and can
+    // attempt a manual login rather than being stuck. This is *not* a
+    // destructive logout: nothing is cleared, so a session that does
+    // resolve late (after this timeout) is still honored on the next
+    // cold start.
+    await completer.future.timeout(const Duration(seconds: 15), onTimeout: settle);
   }
 
   Future<void> _settle(Future<void> future) async {
