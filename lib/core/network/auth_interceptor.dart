@@ -54,13 +54,14 @@ class AuthInterceptor extends Interceptor {
     try {
       newToken = await (_refreshFuture ??= _refresh());
     } catch (e) {
-      // Only a definitive rejection of the refresh token (a real
-      // ApiException from a non-2xx response) should force a logout. A
-      // network-level failure (NetworkException, or anything else that
-      // isn't a confirmed rejection) shouldn't log the user out or touch
-      // stored state — just let the original 401 propagate as a retriable
-      // failure.
-      if (e is! NetworkException) {
+      // Only a genuine 401 rejection of the refresh token itself should
+      // force a logout. A network-level failure (NetworkException), a
+      // transient server problem (an ApiException with a non-401 status —
+      // 5xx, 429, ...), or anything else unexpected isn't a confirmed
+      // rejection — treat it the same as "couldn't verify right now" and
+      // just let the original 401 propagate as a retriable failure without
+      // touching stored state.
+      if (e is ApiException && e.statusCode == 401) {
         await onRefreshFailed();
       }
       handler.next(err);

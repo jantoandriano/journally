@@ -37,7 +37,10 @@ class HttpAuthRepository implements AuthRepository {
         refreshToken: data['refreshToken'] as String,
       );
     } on DioException catch (e) {
-      throw ApiException('POST $path failed with status ${e.response?.statusCode}');
+      throw ApiException(
+        'POST $path failed with status ${e.response?.statusCode}',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 
@@ -59,7 +62,10 @@ class HttpAuthRepository implements AuthRepository {
       if (e.response == null) {
         throw NetworkException('POST /auth/refresh failed: ${e.message}');
       }
-      throw ApiException('POST /auth/refresh failed with status ${e.response?.statusCode}');
+      throw ApiException(
+        'POST /auth/refresh failed with status ${e.response?.statusCode}',
+        statusCode: e.response?.statusCode,
+      );
     }
   }
 

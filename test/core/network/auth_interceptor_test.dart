@@ -105,13 +105,48 @@ void main() {
       AuthInterceptor(
         dio: dio,
         getAccessToken: () async => 'expired-token',
-        onRefresh: () async => throw StateError('refresh token invalid'),
+        // A genuine 401 from /auth/refresh is the precise signal that the
+        // refresh token itself was rejected — this is what should force a
+        // logout.
+        onRefresh: () async =>
+            throw ApiException('refresh token invalid', statusCode: 401),
         onRefreshFailed: () async => refreshFailedCalls++,
       ),
     );
 
     await expectLater(dio.get('/entries'), throwsA(isA<DioException>()));
     expect(refreshFailedCalls, 1);
+  });
+
+  // Finding 2 (re-review round 2): only a genuine 401/403 rejection of the
+  // refresh token should force a logout. An ApiException with any other
+  // status code (5xx, 429, ...) represents a real HTTP response but a
+  // transient server problem, not a confirmed rejection — it must be
+  // treated the same as a network-level failure: don't log out or touch
+  // stored state.
+  test('an ApiException with a non-401 status code does not force a logout', () async {
+    final dio = Dio();
+    var refreshFailedCalls = 0;
+
+    dio.httpClientAdapter = FakeHttpClientAdapter(
+      (_) => (statusCode: 401, data: {'error': 'expired'}),
+    );
+
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio: dio,
+        getAccessToken: () async => 'expired-token',
+        onRefresh: () async =>
+            throw ApiException('server error', statusCode: 500),
+        onRefreshFailed: () async => refreshFailedCalls++,
+      ),
+    );
+
+    // The original 401 still surfaces (nothing to retry with), but a
+    // transient server error refreshing must not be treated as a
+    // definitive auth rejection.
+    await expectLater(dio.get('/entries'), throwsA(isA<DioException>()));
+    expect(refreshFailedCalls, 0);
   });
 
   test('does not attempt refresh for a 401 on an /auth/ endpoint', () async {

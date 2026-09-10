@@ -90,6 +90,36 @@ void main() {
     expect(result.refreshToken, 'refresh-3');
   });
 
+  // Finding 2 (re-review round 2): callers need the HTTP status code to
+  // distinguish a genuine 401 rejection of the refresh token from a
+  // transient server problem (5xx, 429, ...) — both arrive as a real HTTP
+  // response, but only the former should be treated as a definitive
+  // rejection.
+  test('refresh throws an ApiException carrying the response status code', () async {
+    dio = buildDio(
+      FakeHttpClientAdapter((_) => (statusCode: 401, data: {'error': 'invalid refresh token'})),
+    );
+    repository = HttpAuthRepository(dio: dio);
+
+    await expectLater(
+      repository.refresh('bad-refresh'),
+      throwsA(isA<ApiException>().having((e) => e.statusCode, 'statusCode', 401)),
+    );
+  });
+
+  test(
+    'refresh throws an ApiException with the status code for a transient server error too',
+    () async {
+      dio = buildDio(FakeHttpClientAdapter((_) => (statusCode: 503, data: {'error': 'down'})));
+      repository = HttpAuthRepository(dio: dio);
+
+      await expectLater(
+        repository.refresh('some-refresh'),
+        throwsA(isA<ApiException>().having((e) => e.statusCode, 'statusCode', 503)),
+      );
+    },
+  );
+
   test('logout does not throw even if the server call fails', () async {
     dio = buildDio(FakeHttpClientAdapter((_) => (statusCode: 500, data: null)));
     repository = HttpAuthRepository(dio: dio);
