@@ -411,4 +411,87 @@ void main() {
       expect(storedSession?.refreshToken, 'refresh-B-rotated');
     },
   );
+
+  // Regression test: _authenticate() (signup/login) used to bump
+  // `_authEpoch` without also nulling `_refreshFuture`, unlike
+  // logout()/forceLogout() which do both. Reachable via the splash-timeout
+  // escape hatch — splash gives up waiting after 15s and hands off to
+  // LoginScreen while a silent-login refresh may still be running
+  // underneath. When that stale refresh eventually completes, its epoch
+  // mismatch correctly makes it skip persisting its result, and its
+  // `finally` block correctly skips nulling `_refreshFuture` too (so it
+  // doesn't clobber a newer refresh) — but with nothing else ever nulling
+  // it, `_refreshFuture` stayed permanently pinned to that stale,
+  // already-completed future, so every later refreshAccessToken() call
+  // just replayed it instead of ever starting a fresh refresh.
+  test(
+    'a stale refresh completing after a manual login does not permanently pin _refreshFuture',
+    () async {
+      StoredSession? storedSession = const StoredSession(refreshToken: 'old-refresh', user: user);
+      when(() => mockStorage.readSession()).thenAnswer((_) async => storedSession);
+      when(
+        () => mockStorage.saveSession(
+          refreshToken: any(named: 'refreshToken'),
+          user: any(named: 'user'),
+        ),
+      ).thenAnswer((invocation) async {
+        storedSession = StoredSession(
+          refreshToken: invocation.namedArguments[#refreshToken] as String,
+          user: invocation.namedArguments[#user] as AuthUser,
+        );
+      });
+      when(() => mockStorage.updateRefreshToken(any())).thenAnswer((invocation) async {
+        final token = invocation.positionalArguments[0] as String;
+        storedSession = StoredSession(refreshToken: token, user: storedSession!.user);
+      });
+
+      // The silent-login refresh (kicked off by build()) hangs mid-flight
+      // on a completer we control — mirrors a slow `/auth/refresh` round
+      // trip still running when the splash timeout hands off to the login
+      // screen.
+      var oldRefreshCalls = 0;
+      final staleCompleter = Completer<RefreshResult>();
+      when(() => mockRepo.refresh('old-refresh')).thenAnswer((_) {
+        oldRefreshCalls++;
+        return staleCompleter.future;
+      });
+
+      final notifier = container.read(authControllerProvider.notifier);
+      await Future<void>.delayed(Duration.zero); // let it reach the completer and suspend there
+      expect(oldRefreshCalls, 1);
+
+      // The user completes a manual login while that refresh is still
+      // pending.
+      when(
+        () => mockRepo.login(email: any(named: 'email'), password: any(named: 'password')),
+      ).thenAnswer(
+        (_) async =>
+            const AuthResult(user: user, accessToken: 'access-1', refreshToken: 'refresh-1'),
+      );
+      await notifier.login(email: 'a@b.com', password: 'pw');
+      expect(container.read(authControllerProvider), isA<AuthLoggedIn>());
+
+      // Now the stale refresh finally resolves — too late to matter for
+      // the new session, but it must not wedge `_refreshFuture` shut.
+      staleCompleter.complete(
+        const RefreshResult(accessToken: 'access-stale', refreshToken: 'refresh-stale'),
+      );
+      await Future<void>.delayed(Duration.zero); // let its `finally` block run
+
+      // A later refreshAccessToken() call must hit the repository again
+      // for the *new* session's refresh token — proving `_refreshFuture`
+      // was cleared by login(), not left pinned to the stale, already-
+      // completed future from before.
+      var newRefreshCalls = 0;
+      when(() => mockRepo.refresh('refresh-1')).thenAnswer((_) async {
+        newRefreshCalls++;
+        return const RefreshResult(accessToken: 'access-2', refreshToken: 'refresh-2');
+      });
+
+      final token = await notifier.refreshAccessToken();
+
+      expect(newRefreshCalls, 1);
+      expect(token, 'access-2');
+    },
+  );
 }

@@ -89,7 +89,13 @@ class AuthController extends _$AuthController {
     // whatever session (if any) preceded it — bump the epoch so any
     // refresh still in flight from the old session is recognized as stale
     // when it eventually completes. See _refresh() for how this is used.
+    // Also null `_refreshFuture` (mirroring logout()/forceLogout()) — a
+    // stale refresh's `finally` block deliberately skips clearing it once
+    // the epoch has moved on (so it doesn't clobber a newer refresh), so
+    // without this nothing else would ever null it, permanently pinning
+    // `_refreshFuture` to that stale, already-completed future.
     _authEpoch++;
+    _refreshFuture = null;
     state = const AuthLoading();
     try {
       final result = await action();
